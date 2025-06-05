@@ -8,8 +8,37 @@ from os.path import join as pathJoin
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 
-from main.extensions import db
+from main.extensions import db, bcrypt
 from main.logger import event_logger, error_logger
+
+from flask import session, redirect, url_for, abort
+from .models import Admin
+from functools import wraps
+
+def check_password_hash(password: str, hashed: str) -> bool:
+    """
+    Compares a plaintext password with a hashed password.
+
+    Args:
+        password (str): The plaintext password to check.
+        hashed (str): The hashed password to compare against.
+
+    Returns:
+        bool: True if the passwords match, False otherwise.
+    """
+    return bcrypt.check_password_hash(password, hashed)
+
+def generate_password_hash(password: str) -> str:
+    """
+    Generates a hashed password using bcrypt.
+
+    Args:
+        password (str): The plaintext password to hash.
+
+    Returns:
+        str: The hashed password.
+    """
+    return bcrypt.generate_password_hash(password).decode('utf-8')
 
 def util_set_params(**kwargs) -> dict:
     """
@@ -169,3 +198,36 @@ def util_db_update() -> dict:
     except Exception as e:
         error_logger.error(f"DB update failed: {e}", exc_info=True)
         return {'success': False, 'error': str(e)}
+
+# ──────────── Wrappers ────────────
+
+def login_required(*args, **kwargs):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user' not in session:
+                return redirect(url_for('index.login'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def is_admin(max_level=1):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user = session.get('user')
+            if not user or user.role != 'admin' or user.level < max_level:
+                event_logger.warning(f"Unauthorized access attempt by user: {user.get('email', 'unknown') if user else 'unknown'}")
+                return redirect(url_for('index.login'))
+
+            admin_id = user.get('user_id')
+            if not admin_id:
+                abort(403)
+
+            admin = Admin.query.filter_by(id=admin_id, is_active=True).first()
+            if not admin:
+                abort(403)
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator

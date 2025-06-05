@@ -11,6 +11,8 @@ class BaseModel(db.Model):
         result = {}
         for column in self.__table__.columns:
             value = getattr(self, column.name)
+            if value == 'password':
+                continue
             if isinstance(value, datetime):
                 result[column.name] = value.isoformat()
             elif isinstance(value, dict):
