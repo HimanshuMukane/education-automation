@@ -22,10 +22,12 @@ def create_app():
     from .routes.index import index_bp
     from .routes.auth import auth_bp
     from .routes.api import api_bp
+    from .routes.student import student_bp
 
     app.register_blueprint(index_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(student_bp)
 
     # Log application startup
     getLogger("event").info("Flask app initialized.")

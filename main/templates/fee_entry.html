@@ -1,0 +1,98 @@
+{% extends "_partials/_layout.html" %}
+{% block title %}Fee Entry{% endblock %}
+
+{% block head_css %}
+  <!-- Bootstrap CSS (via CDN or local) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-..."
+    crossorigin="anonymous"
+  >
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/fee_entry.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Student Fee Payment</h2>
+  <div id="alert-container"></div>
+
+  <!-- Grade, First Name, Last Name Form -->
+  <form id="lookup-form" class="row g-3">
+    <div class="col-md-3">
+      <label for="grade" class="form-label">Grade</label>
+      <input type="text" class="form-control" id="grade" required>
+    </div>
+    <div class="col-md-3">
+      <label for="fname" class="form-label">First Name</label>
+      <input type="text" class="form-control" id="fname" required>
+    </div>
+    <div class="col-md-3">
+      <label for="lname" class="form-label">Last Name</label>
+      <input type="text" class="form-control" id="lname" required>
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+      <button type="button" id="btn-lookup" class="btn btn-primary w-100">Lookup</button>
+    </div>
+  </form>
+
+  <hr>
+
+  <!-- Payment Section: Initially hidden -->
+  <div id="payment-section" class="mt-4" style="display: none;">
+    <h4 id="student-header"></h4>
+
+    <div class="row g-3 align-items-center">
+      <div class="col-md-3">
+        <label class="form-label">Total Fee</label>
+        <input type="number" step="0.01" class="form-control" id="total-fee" readonly>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fees Paid</label>
+        <input type="number" step="0.01" class="form-control" id="fees-paid" readonly>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Remaining Fee</label>
+        <input type="number" step="0.01" class="form-control" id="remaining-fee" readonly>
+      </div>
+    </div>
+
+    <div class="row g-3 align-items-center mt-3">
+      <div class="col-md-3">
+        <label class="form-label">New Payment Amount</label>
+        <input type="number" step="0.01" class="form-control" id="new-payment" required>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="button" id="btn-submit-payment" class="btn btn-success w-100">Submit Payment</button>
+      </div>
+    </div>
+
+    <!-- Past Payments Table -->
+    <div class="mt-4">
+      <h5>Payment History</h5>
+      <table class="table table-bordered" id="payments-table">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Date Paid</th>
+            <th scope="col">Amount Paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dynamically populated via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block bottom_js %}
+  <!-- Bootstrap JS (via CDN or local) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-..."
+    crossorigin="anonymous"
+  ></script>
+  <script src="{{ url_for('static', filename='js/fee_entry.js') }}"></script>
+{% endblock %}
