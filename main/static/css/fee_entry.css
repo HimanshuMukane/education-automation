@@ -1,0 +1,10 @@
+/* static/css/fee_entry.css */
+
+#payment-section input[readonly] {
+  background-color: #e9ecef; /* Bootstrap’s readonly gray */
+}
+
+#payments-table th,
+#payments-table td {
+  vertical-align: middle;
+}
