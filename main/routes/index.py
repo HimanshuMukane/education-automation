@@ -10,6 +10,10 @@ def index():
 def login():
     return render_template('login.html')
 
+@index_bp.route('/signup')
+def signup():
+    return render_template('signup.html')
+
 @index_bp.route('/fee-entry')
 def fee_entry():
     return render_template('fee_entry.html')

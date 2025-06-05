@@ -1,32 +1,25 @@
-# routes_student.py
-
-from flask import Blueprint, request, jsonify, render_template, send_file, abort
+from flask import Blueprint, request, jsonify, render_template, send_file, abort, session, redirect, url_for
 from datetime import datetime
 from main.extensions import db
 from main.models import Student, StudentInvoice
 
-student_bp = Blueprint('student', __name__, url_prefix='/api')
+sales_bp = Blueprint('sales', __name__, url_prefix='/sales')
 
-@student_bp.route('/ping', methods=['GET'])
+@sales_bp.route('/ping', methods=['GET'])
 def ping():
     return jsonify({'success': True, 'message': 'pong'})
 
+@sales_bp.route('/dashboard')
+def dashboard():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin' or user.get('level') != 2:
+        return redirect(url_for('index.index'))
 
-@student_bp.route('/student/lookup', methods=['GET'])
+    # You can pass any data you need here, e.g. sales figures.
+    return render_template('sales_dashboard.html', admin_name=user.get('name'))
+
+@sales_bp.route('/student/lookup', methods=['GET'])
 def lookup_student():
-    """
-    Query params: grade=<string>&fname=<string>&lname=<string>
-    Returns JSON:
-      - If student exists:
-        { "exists": true,
-          "student_id": <int>,
-          "total_fees": <float>,
-          "fees_paid": <float>,
-          "remaining_fee": <float>
-        }
-      - If not:
-        { "exists": false }
-    """
     grade = request.args.get('grade', '').strip()
     fname = request.args.get('fname', '').strip()
     lname = request.args.get('lname', '').strip()
@@ -59,25 +52,8 @@ def lookup_student():
     })
 
 
-@student_bp.route('/student/payment', methods=['POST'])
+@sales_bp.route('/student/payment', methods=['POST'])
 def record_payment():
-    """
-    Expects JSON payload:
-    {
-      "grade": "<string>",
-      "fname": "<string>",
-      "lname": "<string>",
-      "total_fees": <float or null>,
-      "payment_amount": <float>
-    }
-
-    Behavior:
-      - If student exists: ignore total_fees in payload, only record new installment.
-      - If student doesn't exist: total_fees must be provided (>0). Create Student, then record payment.
-      - If payment_amount > remaining_fee, return error.
-      - Update Student.fees_paid and insert a StudentInvoice row.
-      - Return JSON with updated totals and full payment history.
-    """
     data = request.get_json() or {}
     grade = (data.get('grade') or '').strip()
     fname = (data.get('fname') or '').strip()

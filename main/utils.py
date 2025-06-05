@@ -14,31 +14,43 @@ from main.logger import event_logger, error_logger
 from flask import session, redirect, url_for, abort
 from .models import Admin
 from functools import wraps
+# ── main/utils.py ────────────────────────────────────────────────────────────────
 
-def check_password_hash(password: str, hashed: str) -> bool:
+
+def generate_password_hash(plain_password: str) -> str:
     """
-    Compares a plaintext password with a hashed password.
-
+    Generate a secure password hash using bcrypt.
     Args:
-        password (str): The plaintext password to check.
-        hashed (str): The hashed password to compare against.
-
+        plain_password (str): The plain text password to hash
     Returns:
-        bool: True if the passwords match, False otherwise.
+        str: The hashed password as a utf-8 string
     """
-    return bcrypt.check_password_hash(password, hashed)
+    return bcrypt.generate_password_hash(plain_password).decode('utf-8')
 
-def generate_password_hash(password: str) -> str:
+
+def check_password_hash(stored_hash: str, candidate_password: str) -> bool:
     """
-    Generates a hashed password using bcrypt.
-
+    Check if a candidate password matches the stored hash.
+    Supports both bcrypt and Werkzeug hashes for backward compatibility.
+    
     Args:
-        password (str): The plaintext password to hash.
-
+        stored_hash (str): The stored hash from the database
+        candidate_password (str): The plain text password to check
     Returns:
-        str: The hashed password.
+        bool: True if the password matches, False otherwise
     """
-    return bcrypt.generate_password_hash(password).decode('utf-8')
+    try:
+        # Try bcrypt first
+        return bcrypt.check_password_hash(stored_hash, candidate_password)
+    except ValueError:
+        # If bcrypt fails, try Werkzeug's check_password_hash
+        from werkzeug.security import check_password_hash as werkzeug_check
+        try:
+            return werkzeug_check(stored_hash, candidate_password)
+        except Exception:
+            # If both methods fail, return False
+            return False
+
 
 def util_set_params(**kwargs) -> dict:
     """
