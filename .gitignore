@@ -1,0 +1,3 @@
+# .env   #uncomment onces cloned
+env/
+__pycache__/
