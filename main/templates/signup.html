@@ -115,13 +115,13 @@
       }
 
       if (password.length < 8) {
-        showAlert('Password must be at least 8 characters long.', 'danger');
-        return;
+        // showAlert('Password must be at least 8 characters long.', 'danger');
+        // return;
       }
 
       const payload = { name: name, email: email, password: password, role: role };
 
-      fetch('/auth/register_admin', {
+      fetch('{{ url_for("auth.create_account") }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -135,9 +135,9 @@
       .then(({ status, body }) => {
         if (status === 200 && body.success) {
           showAlert(body.message, 'success');
-          setTimeout(() => {
-            window.location.href = '{{ url_for("auth.login") }}';
-          }, 1500);
+        //   setTimeout(() => {
+        //     window.location.href = '{{ url_for("index.login") }}';
+        //   }, 1500);
         } else {
           const err = body.error || 'Unknown error';
           showAlert(err, 'danger');

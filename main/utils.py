@@ -11,7 +11,7 @@ from werkzeug.datastructures import FileStorage
 from main.extensions import db, bcrypt
 from main.logger import event_logger, error_logger
 
-from flask import session, redirect, url_for, abort
+from flask import request, session, redirect, url_for, jsonify
 from .models import Admin
 from functools import wraps
 # ── main/utils.py ────────────────────────────────────────────────────────────────
@@ -213,32 +213,31 @@ def util_db_update() -> dict:
 
 # ──────────── Wrappers ────────────
 
-def login_required(*args, **kwargs):
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if 'user' not in session:
-                return redirect(url_for('index.login'))
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            event_logger.warning(f"User Key Not In Session")
+            return jsonify({"success":False, "error": "login required for performing action"}), 403              
+        return f(*args, **kwargs)
+    return decorated_function
 
 def is_admin(max_level=1):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             user = session.get('user')
-            if not user or user.role != 'admin' or user.level < max_level:
+            role = user.get("role")
+            level = user.get("level")
+            admin_id = user.get("user_id")
+            if not user or not role or role != 'admin' or not admin_id or not level or level < max_level:
                 event_logger.warning(f"Unauthorized access attempt by user: {user.get('email', 'unknown') if user else 'unknown'}")
-                return redirect(url_for('index.login'))
-
-            admin_id = user.get('user_id')
-            if not admin_id:
-                abort(403)
-
+                return jsonify({"success":False, "error": "Access denied for non-admin access requests"}), 403
+                
             admin = Admin.query.filter_by(id=admin_id, is_active=True).first()
             if not admin:
-                abort(403)
+                event_logger.warning(f"Admin account not found for admin id {admin_id}")
+                return jsonify({"success":False, "error": "Access denied for non-admin access requests"}), 403
 
             return f(*args, **kwargs)
         return decorated_function

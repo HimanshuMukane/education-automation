@@ -1,11 +1,9 @@
 # ── main/admin.py ───────────────────────────────────────────────────────────────
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
 from main.models import Teacher
-from main.extensions import db
-from werkzeug.security import generate_password_hash
+from main.utils import util_db_add, util_db_update, generate_password_hash, login_required, is_admin
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
-
 
 @admin_bp.route('/dashboard')
 def dashboard():
@@ -15,7 +13,7 @@ def dashboard():
     teachers = Teacher.query.order_by(Teacher.id.desc()).all()
     return render_template('admin_dashboard.html', teachers=teachers)
 
-@admin_bp.route('/teacher/create', methods=['POST'])
+@admin_bp.route('/create-teacher', methods=['POST'])
 def create_teacher():
     """
     Expect JSON body with:
@@ -61,8 +59,12 @@ def create_teacher():
         pay_per_lecture=pay_per_lecture,
         is_active=True
     )
-    db.session.add(new_teacher)
-    db.session.commit()
+    result = util_db_add(new_teacher)
+    if not result.get('success'):
+        return jsonify({
+            'success': False,
+            'error': 'Teacher Creation Failed',
+        }), 500
 
     return jsonify({
         'success': True,
@@ -76,22 +78,23 @@ def create_teacher():
     }), 200
 
 # ── Edit a Teacher (PUT / DELETE) ─────────────────────────────────────────────────
-@admin_bp.route('/teacher/<int:teacher_id>', methods=['PUT', 'DELETE'])
-def modify_teacher(teacher_id):
+@admin_bp.route('/modify-teacher', methods=['PUT', 'DELETE'])
+@login_required
+@is_admin(1)
+def modify_teacher():
     """
     PUT  → update teacher’s name/email/password
     DELETE → deactivate (or hard‐delete) a teacher
     """
-    user = session.get('user')
-    if not user or user.get('role') != 'admin' or user.get('level') != 1:
+    teacher_id = request.json.get('id')
+    teacher = Teacher.query.get(teacher_id)
+    if not teacher:
         return jsonify({'success': False, 'error': 'Not authorized'}), 403
-
-    teacher = Teacher.query.get_or_404(teacher_id)
 
     if request.method == 'DELETE':
         # Option A: Soft-delete (mark inactive)
         teacher.is_active = False
-        db.session.commit()
+        
         return jsonify({'success': True, 'message': 'Teacher deactivated'}), 200
 
     # Otherwise, it’s a PUT
@@ -121,14 +124,20 @@ def modify_teacher(teacher_id):
     if password:
         teacher.password = generate_password_hash(password)
 
-
-    db.session.commit()
+    result = util_db_update()
+    if not result.get("success"):
+        return jsonify({
+            'success': False,
+            'error': 'Teacher Updation Failed',
+        }), 500
+    
     return jsonify({
         'success': True,
         'message': 'Teacher updated',
         'teacher': {
             'id': teacher.id,
             'name': teacher.name,
-            'email': teacher.email
+            'email': teacher.email,
+            'pay_per_lecture': float(teacher.pay_per_lecture)
         }
     }), 200

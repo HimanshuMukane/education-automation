@@ -52,9 +52,9 @@ def login():
         return redirect(url_for('index.login'))
 
 
-@auth_bp.route('/create_account', methods=['POST'])
-@is_admin(1)
+@auth_bp.route('/create-account', methods=['POST'])
 @login_required
+@is_admin(1)
 def create_account():
     data = request.get_json()
     if not data:
@@ -73,7 +73,6 @@ def create_account():
             return jsonify({'success' : False, 'error': 'Email already exists'}), 400
 
         hashed_password = generate_password_hash(password)
-        print(len(hashed_password))
         new_admin = Admin(
             name=name,
             email=email,
@@ -115,19 +114,6 @@ def logout():
 
 @auth_bp.route('/register_admin', methods=['POST'])
 def register_admin():
-    """
-    Public endpoint to register a brand‐new Admin using JSON → { name, email, password, role }.
-    (No @login_required, no @is_admin decorator.)
-
-    Expected JSON payload:
-      {
-        "name": "Alice Admin",
-        "email": "alice@example.com",
-        "password": "supersafepw",
-        "role": "admin"
-      }
-    Returns JSON { success: True/False, message: "...", data: { … } }.
-    """
     data = request.get_json()
     if not data:
         return jsonify({'success': False, 'error': 'No JSON body provided'}), 400
