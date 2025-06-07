@@ -70,7 +70,7 @@ def create_account():
 
     if role == 'admin':
         if Admin.query.filter_by(email=email).first():
-            return jsonify({'error': 'Email already exists'}), 400
+            return jsonify({'success' : False, 'error': 'Email already exists'}), 400
 
         hashed_password = generate_password_hash(password)
         print(len(hashed_password))
@@ -84,6 +84,29 @@ def create_account():
         if not result.get('success'):
             return jsonify({'success': False, 'error': 'User creation error'}), 500
         return jsonify({'success': True, 'message': 'User created successfully', 'data': new_admin.to_dict()}), 200
+    
+    elif role == 'teacher':
+        bank_info = data.get('bank_info', {})
+        pay_per_lecture = data.get('pay_per_lecture')
+
+        if not pay_per_lecture :
+            return jsonify({'success' : False, 'error': 'Pay per lecture is required'}), 400
+
+        if Teacher.query.filter_by(email=email).first():
+            return jsonify({'success' : False, 'error': 'Email already exists'}), 400
+         
+        hashed_password = generate_password_hash(password)
+        new_teacher = Teacher(
+            name=name,
+            email=email,
+            bank_info=bank_info,
+            pay_per_lecture=pay_per_lecture,
+            password=hashed_password
+        )
+        result = util_db_add(new_teacher)
+        if not result.get('success'):
+            return jsonify({'success': False, 'error': 'User creation error'}), 500
+        return jsonify({'success': True, 'message': 'User created successfully', 'data': new_teacher.to_dict()}), 200
 
 @auth_bp.route('/logout')
 def logout():
