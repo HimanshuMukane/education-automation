@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from os import getenv
-
+import os
 load_dotenv()
 
 SECRET_KEY = getenv('SECRET_KEY', "159357258456")
@@ -28,3 +28,5 @@ class Config:
     DEBUG = DEBUG
     SQLALCHEMY_DATABASE_URI = f"{DB_TYPE}+{DB_DRIVER}://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+    ALLOWED_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv'}

@@ -1,0 +1,47 @@
+{% block content %}
+    <!-- Sidebar -->
+    <div class="sidebar d-none d-md-block">
+        {% include '_partials/_sidebar.html' %}
+    </div>
+<div class="container py-4">
+  <h2>Mark Attendance</h2>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if lectures %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Date</th><th>Grade</th><th>Subject</th><th>Time</th><th>Upload Video</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for lec in lectures %}
+        <tr>
+          <td>{{ lec.date }}</td>
+          <td>{{ lec.grade }}</td>
+          <td>{{ lec.subject }}</td>
+          <td>{{ lec.start_time }}–{{ lec.end_time }}</td>
+          <td>
+            <form method="post" enctype="multipart/form-data">
+              <input type="hidden" name="entry_id" value="{{ lec.id }}" />
+              <div class="input-group">
+                <input type="file" name="video" accept="video/*" required class="form-control form-control-sm" />
+                <button class="btn btn-sm btn-primary" type="submit">Save</button>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No pending lectures to mark.</p>
+  {% endif %}
+</div>
+{% endblock %}

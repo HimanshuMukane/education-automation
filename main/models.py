@@ -81,6 +81,7 @@ class Timetable(BaseModel):
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False, index=True)
+    is_present = db.Column(db.Boolean, default=False, server_default='0')
     is_proxy = db.Column(db.Boolean, default=False)
     proxy_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=True, index=True)
 

@@ -1,6 +1,6 @@
 # ── main/admin.py ───────────────────────────────────────────────────────────────
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
-from main.models import Teacher
+from main.models import Timetable, Teacher
 from main.utils import util_db_add, util_db_update, generate_password_hash, login_required, is_admin
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -133,3 +133,78 @@ def modify_teacher():
             'pay_per_lecture': teacher.pay_per_lecture
         }
     }), 200
+
+
+
+@admin_bp.route('/timetables')
+@login_required
+@is_admin(1)
+def timetables():
+    entries = Timetable.query.order_by(Timetable.date.desc(), Timetable.start_time.asc()).all()
+    teachers = Teacher.query.filter_by(is_active=True).all()
+    return render_template('timetable.html', entries=entries, teachers=teachers)
+
+@admin_bp.route('/timetable/create', methods=['POST'])
+@login_required
+@is_admin(1)
+def create_entry():
+    data = request.get_json()
+    try:
+        date = data['date']
+        grade = data['grade'].strip()
+        subject = data['subject'].strip()
+        start_time = data['start_time']
+        end_time = data['end_time']
+        teacher_id = int(data['teacher_id'])
+    except (KeyError, ValueError):
+        return jsonify({'success': False, 'error': 'Invalid input data'}), 400
+
+    new_entry = Timetable(
+        date=date,
+        grade=grade,
+        subject=subject,
+        start_time=start_time,
+        end_time=end_time,
+        teacher_id=teacher_id
+    )
+    result = util_db_add(new_entry)
+    if not result.get('success'):
+        return jsonify({'success': False, 'error': 'Creation failed'}), 500
+
+    return jsonify({
+        'success': True,
+        'entry': new_entry.to_dict()
+    }), 200
+
+@admin_bp.route('/timetable/modify', methods=['PUT', 'DELETE'])
+@login_required
+@is_admin(1)
+def modify_entry():
+    data = request.get_json()
+    entry = Timetable.query.get(data.get('id'))
+    if not entry:
+        return jsonify({'success': False, 'error': 'Not found'}), 404
+
+    if request.method == 'DELETE':
+        # Soft delete flag
+        entry.is_proxy = True
+        result = util_db_update()
+        if not result.get('success'):
+            return jsonify({'success': False, 'error': 'Deletion failed'}), 500
+        return jsonify({'success': True}), 200
+
+    # PUT → update
+    try:
+        entry.date = data['date']
+        entry.grade = data['grade'].strip()
+        entry.subject = data['subject'].strip()
+        entry.start_time = data['start_time']
+        entry.end_time = data['end_time']
+        entry.teacher_id = int(data['teacher_id'])
+    except (KeyError, ValueError):
+        return jsonify({'success': False, 'error': 'Invalid data'}), 400
+
+    result = util_db_update()
+    if not result.get('success'):
+        return jsonify({'success': False, 'error': 'Update failed'}), 500
+    return jsonify({'success': True, 'entry': entry.to_dict()}), 200
