@@ -1,7 +1,7 @@
 {# templates/_sidebar.html #}
 <div class="d-flex flex-column bg-light vh-100 p-3" style="width: 250px;">
   {% set user = session.get('user') %}
-  <a href="{{ url_for('index.index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
+  <a href="{{ url_for('index.login') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
     <span class="fs-4">Dashboard</span>
   </a>
   <hr>
@@ -16,12 +16,12 @@
         </li>
         <li>
           <a href="{{ url_for('admin.dashboard') }}#create-teacher" class="nav-link link-dark">
-            <i class="bi bi-person-plus-fill me-2"></i>Create Teacher
+            <i class="bi bi-person-plus-fill me-2"></i>Teacher
           </a>
         </li>
         <li>
-          <a href="{{ url_for('admin.dashboard') }}#manage-teachers" class="nav-link link-dark">
-            <i class="bi bi-people-fill me-2"></i>Manage Teachers
+          <a href="{{ url_for('admin.dashboard') }}#create-teacher" class="nav-link link-dark">
+            <i class="bi bi-person-plus-fill me-2"></i>Sales
           </a>
         </li>
         <li>

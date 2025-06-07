@@ -6,32 +6,23 @@ from main.utils import util_db_add, util_db_update, generate_password_hash, logi
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.route('/dashboard')
+@login_required
+@is_admin(2)
 def dashboard():
     user = session.get('user')
     if not user or user.get('role') != 'admin' or user.get('level') != 1:
-        return redirect(url_for('index.index'))
+        return redirect(url_for('index.login'))
     teachers = Teacher.query.order_by(Teacher.id.desc()).all()
     return render_template('admin_dashboard.html', teachers=teachers)
 
 @admin_bp.route('/create-teacher', methods=['POST'])
+@login_required
+@is_admin(1)
 def create_teacher():
-    """
-    Expect JSON body with:
-      {
-        "name": "Full Name",
-        "email": "teacher@example.com",
-        "password": "somepassword",
-        "pay_per_lecture": 250.00
-      }
-    """
-    user = session.get('user')
-    if not user or user.get('role') != 'admin' or user.get('level') != 1:
-        return jsonify({'success': False, 'error': 'Not authorized'}), 403
-
-    data = request.get_json() or {}
-    name = (data.get('name') or '').strip()
-    email = (data.get('email') or '').strip().lower()
-    password = data.get('password') or ''
+    data = request.get_json()
+    name = data.get('name','').strip()
+    email = data.get('email','').strip().lower()
+    password = data.get('password','')
     pay_per_lecture_raw = data.get('pay_per_lecture')
 
     # Basic validation
@@ -57,7 +48,6 @@ def create_teacher():
         email=email,
         password=hashed_pw,
         pay_per_lecture=pay_per_lecture,
-        is_active=True
     )
     result = util_db_add(new_teacher)
     if not result.get('success'):
@@ -84,7 +74,7 @@ def create_teacher():
 def modify_teacher():
     """
     PUT  → update teacher’s name/email/password
-    DELETE → deactivate (or hard‐delete) a teacher
+    DELETE → deactivate (or hard-delete) a teacher
     """
     teacher_id = request.json.get('id')
     teacher = Teacher.query.get(teacher_id)
@@ -94,13 +84,15 @@ def modify_teacher():
     if request.method == 'DELETE':
         # Option A: Soft-delete (mark inactive)
         teacher.is_active = False
-        
+        result = util_db_update()
+        if not result.get('success'): 
+            return jsonify({'success': False, 'error': 'Failed to deactivate account'}), 500
         return jsonify({'success': True, 'message': 'Teacher deactivated'}), 200
 
     # Otherwise, it’s a PUT
-    data = request.get_json() or {}
-    name = (data.get('name') or '').strip()
-    email = (data.get('email') or '').strip().lower()
+    data = request.get_json()
+    name = data.get('name','').strip()
+    email = data.get('email','').strip().lower()
     password = data.get('password')  # optional; only if they want to update password
     pay_raw = data.get('pay_per_lecture')  # ← new
 
@@ -138,6 +130,6 @@ def modify_teacher():
             'id': teacher.id,
             'name': teacher.name,
             'email': teacher.email,
-            'pay_per_lecture': float(teacher.pay_per_lecture)
+            'pay_per_lecture': teacher.pay_per_lecture
         }
     }), 200

@@ -110,7 +110,7 @@ def create_account():
 @auth_bp.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index.index'))
+    return redirect(url_for('index.login'))
 
 @auth_bp.route('/register_admin', methods=['POST'])
 def register_admin():

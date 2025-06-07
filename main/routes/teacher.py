@@ -10,6 +10,6 @@ def dashboard():
     """
     user = session.get('user')
     if not user or user.get('role') != 'teacher':
-        return redirect(url_for('index.index'))
+        return redirect(url_for('index.login'))
 
     return render_template('teacher_dashboard.html', teacher_name=user.get('name'))

@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 from config import Config
 
 from main.logger import getLogger
@@ -10,7 +10,7 @@ def create_app():
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template("404_page_not_found.html"), 404
-
+    
     # Load configuration
     app.config.from_object(Config)
 

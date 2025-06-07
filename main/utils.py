@@ -218,6 +218,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
             event_logger.warning(f"User Key Not In Session")
+            if request.method == "GET" : return redirect(url_for("index.login"))
             return jsonify({"success":False, "error": "login required for performing action"}), 403              
         return f(*args, **kwargs)
     return decorated_function
@@ -230,13 +231,15 @@ def is_admin(max_level=1):
             role = user.get("role")
             level = user.get("level")
             admin_id = user.get("user_id")
-            if not user or not role or role != 'admin' or not admin_id or not level or level < max_level:
+            if not user or not role or role != 'admin' or not admin_id or not level or level > max_level:
                 event_logger.warning(f"Unauthorized access attempt by user: {user.get('email', 'unknown') if user else 'unknown'}")
+                if request.method == "GET" : return redirect(url_for("index.login"))
                 return jsonify({"success":False, "error": "Access denied for non-admin access requests"}), 403
                 
             admin = Admin.query.filter_by(id=admin_id, is_active=True).first()
             if not admin:
                 event_logger.warning(f"Admin account not found for admin id {admin_id}")
+                if request.method == "GET" : return redirect(url_for("index.login"))
                 return jsonify({"success":False, "error": "Access denied for non-admin access requests"}), 403
 
             return f(*args, **kwargs)

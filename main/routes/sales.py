@@ -13,7 +13,7 @@ def ping():
 def dashboard():
     user = session.get('user')
     if not user or user.get('role') != 'admin' or user.get('level') != 2:
-        return redirect(url_for('index.index'))
+        return redirect(url_for('index.login'))
 
     # You can pass any data you need here, e.g. sales figures.
     return render_template('sales_dashboard.html', admin_name=user.get('name'))
