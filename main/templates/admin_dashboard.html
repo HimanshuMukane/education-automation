@@ -430,7 +430,7 @@
         payload.password = newPwd;
       }
 
-      fetch(`{{url_for("admin.modify_teacher")}}`, {
+      fetch("{{url_for('admin.modify_teacher')}}", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -493,7 +493,7 @@
     document.getElementById("confirmDeleteBtn").addEventListener("click", function () {
       if (!deletingTeacherId) return;
 
-      fetch(`{{admin.modify_teacher}}`, {
+      fetch("{{url_for('admin.modify_teacher')}}", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ "id": deletingTeacherId })
