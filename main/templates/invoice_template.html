@@ -1,16 +1,29 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
+    <title>Monthly Invoice</title>
     <style>
         body {
             font-family: sans-serif;
+            margin: 40px;
+            color: #000;
+        }
+
+        .header,
+        .footer {
+            text-align: center;
         }
 
         h1,
-        h2 {
-            text-align: center;
+        h2,
+        h3 {
+            margin: 0.5rem 0;
+        }
+
+        .section {
+            margin-top: 1.5rem;
         }
 
         table {
@@ -34,44 +47,86 @@
             margin-top: 1rem;
             text-align: right;
         }
+
+        .small-text {
+            font-size: 0.9em;
+        }
+
+        .bank-info p,
+        .bill-to p {
+            margin: 0.25rem 0;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        hr {
+            margin: 2rem 0;
+        }
     </style>
 </head>
 
 <body>
-    <h1>Monthly Invoice</h1>
-    <h2>{{ teacher.name }} — {{ month }}/{{ year }}</h2>
-    <h1>Bank Details</h1>
-    <p>{{ teacher.bank_info.bankName }}</p>
-    <p>{{ teacher.bank_info.bankAddress }}</p>
-    <p>{{ teacher.bank_info.AccountNumber }}</p>
-    <p>{{ teacher.bank_info.ifscCode }}</p>
-    <p>{{ teacher.email }}</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Subject</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Rate</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for e in entries %}
-            <tr>
-                <td>{{ e.date }}</td>
-                <td>{{ e.subject }}</td>
-                <td>{{ e.start_time }}</td>
-                <td>{{ e.end_time }}</td>
-                <td>{{ teacher.pay_per_lecture }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="header">
+        <h1>TAX INVOICE</h1>
+        <p class="small-text">This is an electronically generated document and does not require any signature</p>
+    </div>
+
+    <div class="section bill-to">
+        <h3>Invoice Details</h3>
+        <p><strong>Invoice Month:</strong> {{ month }}/{{ year }}</p>
+        <p><strong>Teacher Name:</strong> {{ teacher.name }}</p>
+    </div>
+
+    <div class="section bank-info">
+        <h3>Bank Details</h3>
+        <p><strong>Bank Name:</strong> {{ teacher.bank_info.bankName }}</p>
+        <p><strong>Bank Address:</strong> {{ teacher.bank_info.bankAddress }}</p>
+        <p><strong>Account Number:</strong> {{ teacher.bank_info.AccountNumber }}</p>
+        <p><strong>IFSC Code:</strong> {{ teacher.bank_info.ifscCode }}</p>
+        <p><strong>Email:</strong> {{ teacher.email }}</p>
+
+    </div>
+
+    <div class="section">
+        <h3>Lecture Details</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Subject</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Rate (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in entries %}
+                <tr>
+                    <td>{{ e.date }}</td>
+                    <td>{{ e.subject }}</td>
+                    <td>{{ e.start_time }}</td>
+                    <td>{{ e.end_time }}</td>
+                    <td>{{ teacher.pay_per_lecture }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <div class="totals">
         <p>Total Lectures: {{ total_lectures }}</p>
-        <p><strong>Total Amount: ₹{{ "%.2f"|format(total_amount) }}</strong></p>
+        <p class="bold">Total Amount: ₹{{ "%.2f"|format(total_amount) }}</p>
+    </div>
+
+    <hr />
+
+    <div class="footer">
+        <p><strong>TECHYBRID THINKTANK PRIVATE LIMITED</strong></p>
+        <p>5TH FLOOR, 159, INDUSTRY HOUSE, HT PAREKH MARG, CHURCHGATE, MUMBAI - 400020</p>
+        <p class="small-text">All Fee Paid are Non-Refundable</p>
+        <p class="small-text">SAC : 998314</p>
     </div>
 </body>
 
