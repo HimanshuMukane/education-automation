@@ -36,6 +36,7 @@
 }
 .d-flex.flex-column.bg-light.vh-100.p-3 {
     width: 100% !important;
+    height: 100% !important;
 }
 .fs-4 {
     font-size: calc(1.5rem + 0.3vw) !important;
@@ -59,5 +60,18 @@ button.btn-close.text-reset {
 @media (max-width: 768px) {
     .table-responsive {
         border-radius: 0;
+    }
+}
+
+// mark attendance page css starts
+
+.mark-attendence-page {
+    .py-4 {
+        margin-left: 300px;
+        padding: 3%;
+        @media (max-width: 767px) {
+            margin-left: 0;
+            margin-top: 5rem;
+        }
     }
 }
