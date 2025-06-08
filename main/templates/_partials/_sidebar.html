@@ -61,13 +61,13 @@
       {# ── Teacher Options ───────────────────────────────────────────────────── #}
       {% elif user.role == 'teacher' %}
         <li class="nav-item">
-          <a href="{{ url_for('teacher.dashboard') }}" class="nav-link link-dark">
-            <i class="bi bi-house-door-fill me-2"></i>Teacher Home
+          <a href="{{ url_for('teacher.mark_attendance') }}" class="nav-link link-dark">
+            <i class="bi bi-house-door-fill me-2"></i>mark_attendance
           </a>
         </li>
         <li>
-          <a href="{{ url_for('teacher.dashboard') }}#courses" class="nav-link link-dark">
-            <i class="bi bi-book-fill me-2"></i>My Courses
+          <a href="{{ url_for('teacher.generate_invoice') }}" class="nav-link link-dark">
+            <i class="bi bi-book-fill me-2"></i>generate_invoice
           </a>
         </li>
         <li>

@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 import os
 import subprocess
 from datetime import datetime
@@ -117,17 +118,20 @@ def generate_invoice():
             ('05', 'May'), ('06', 'June'), ('07', 'July'), ('08', 'August'),
             ('09', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
         ]
-        return render_template('invoice_select.html', months=months)
+        return render_template('invoice_select.html', months=months, now=datetime.now)
 
     # POST
     month = request.form.get('month')  # '01'-'12'
     year = request.form.get('year')    # '2025', etc
     # fetch all marked lectures for this teacher in selected month
     entries = Timetable.query.filter(
-        Timetable.teacher_id == teacher.id,
         Timetable.is_present == True,
         db.extract('month', Timetable.date) == int(month),
-        db.extract('year', Timetable.date) == int(year)
+        db.extract('year', Timetable.date) == int(year),
+        or_(
+            Timetable.teacher_id == teacher.id,
+            Timetable.proxy_id == teacher.id
+        )
     ).order_by(Timetable.date).all()
 
     total_lectures = len(entries)
