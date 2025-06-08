@@ -11,15 +11,97 @@ def dashboard():
     teachers = Teacher.query.all()
     return render_template('admin_dashboard.html', teachers=teachers)
 
-@admin_bp.route('/create/sales')
+@admin_bp.route('/create/sales', methods=['GET', 'POST'])
 @login_required
 @is_admin(2)
 def create_sales():
-    admins = Admin.query.filter_by(level=2)
-    return render_template('create_sales_admin.html', admins=admins)
+    if request.method == "GET":
+        admins = Admin.query.filter_by(level=2)
+        return render_template('create_sales_admin.html', admins=admins)
+
+    # Else post request to create sales 
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': True, 'error': 'No data provided'}), 400
+    
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+    role = data.get('role','').strip().lower()
+
+    if not all([name, email, password, role]):
+        return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+
+    if role != 'admin':
+        return jsonify({'success': False, 'error': 'Invalid request'}), 400
+
+    if Admin.query.filter_by(email=email).first():
+        return jsonify({'success' : False, 'error': 'Email already exists'}), 400
+
+    hashed_password = generate_password_hash(password)
+    new_admin = Admin(
+        name=name,
+        email=email,
+        password=hashed_password,
+    )
+    result = util_db_add(new_admin)
+    if not result.get('success'):
+        return jsonify({'success': False, 'error': 'User creation error'}), 500
+    admin = new_admin.to_dict()
+    return jsonify({'success': True, 'message': 'User created successfully', 'data': admin}), 200
+
+@admin_bp.route('/modify/sales', methods=['PUT', 'DELETE'])
+@login_required
+@is_admin(1)
+def modify_sales():
+    """
+    PUT  → update admin’s name/email/password
+    DELETE → deactivate (or hard-delete) a admin
+    """
+    admin_id = request.json.get('id')
+    admin = Admin.query.get(admin_id)
+    if not admin:
+        return jsonify({'success': False, 'error': 'Sales not found'}), 404
+
+    if request.method == 'DELETE':
+        admin.is_active = False
+        result = util_db_update()
+        if not result.get('success'): 
+            return jsonify({'success': False, 'error': 'Failed to deactivate account'}), 500
+        return jsonify({'success': True, 'message': 'Sales Account deactivated'}), 200
+
+    # Otherwise, it’s a PUT
+    data = request.get_json()
+    name = data.get('name','').strip()
+    email = data.get('email','').strip().lower()
+    password = data.get('password')  # optional; only if they want to update password
+    is_active = data.get('is_active',None)
+
+    if name:
+        admin.name = name
+    if email:
+        # check duplicate:
+        existing = Admin.query.filter(Admin.email == email, Admin.id != admin_id).first()
+        if existing:
+            return jsonify({'success': False, 'error': 'Email already in use'}), 400
+        admin.email = email
+    if is_active is not None:
+        print(admin.is_active)
+        admin.is_active = is_active
+
+    if password:
+        admin.password = generate_password_hash(password)
+
+    result = util_db_update()
+    if not result.get("success"):
+        return jsonify({ 'success': False, 'error': 'Admin Updation Failed' }), 500
+
+    data = admin.to_dict()
+
+    return jsonify({ 'success': True, 'message': 'Admin updated', 'admin': data}), 200
 
 
-@admin_bp.route('/create-teacher', methods=['POST'])
+@admin_bp.route('/create/teacher', methods=['POST'])
 @login_required
 @is_admin(1)
 def create_teacher():
@@ -56,25 +138,13 @@ def create_teacher():
     )
     result = util_db_add(new_teacher)
     if not result.get('success'):
-        return jsonify({
-            'success': False,
-            'error': 'Teacher Creation Failed',
-        }), 500
-    return jsonify({
-        'success': True,
-        'message': 'Teacher created successfully',
-        'teacher': {
-            'id': new_teacher.id,
-            'name': new_teacher.name,
-            'email': new_teacher.email,
-            'is_active': 'Active' if new_teacher.is_active else 'Inactive',
-            'pay_per_lecture': float(new_teacher.pay_per_lecture),
-            "bank_info":new_teacher.bank_info
-        }
-    }), 200
+        return jsonify({ 'success': False, 'error': 'Teacher Creation Failed'}), 500
+    
+    teacher = new_teacher.to_dict()
+    return jsonify({ 'success': True, 'message': 'Teacher created successfully', 'teacher': teacher }), 200
 
 # ── Edit a Teacher (PUT / DELETE) ─────────────────────────────────────────────────
-@admin_bp.route('/modify-teacher', methods=['PUT', 'DELETE'])
+@admin_bp.route('/modify/teacher', methods=['PUT', 'DELETE'])
 @login_required
 @is_admin(1)
 def modify_teacher():
@@ -100,7 +170,9 @@ def modify_teacher():
     email = data.get('email','').strip().lower()
     password = data.get('password')  # optional; only if they want to update password
     pay_raw = data.get('pay_per_lecture')  # ← new
+    is_active = data.get('is_active',None)
     bankInfo = data.get('paymentDetails',{})
+
     if name:
         teacher.name = name
     if email:
@@ -118,6 +190,9 @@ def modify_teacher():
             return jsonify({'success': False, 'error': 'pay_per_lecture cannot be negative'}), 400
         teacher.pay_per_lecture = pay_val
 
+    if is_active is not None:
+        teacher.is_active = is_active
+
     if password:
         teacher.password = generate_password_hash(password)
     
@@ -126,22 +201,11 @@ def modify_teacher():
 
     result = util_db_update()
     if not result.get("success"):
-        return jsonify({
-            'success': False,
-            'error': 'Teacher Updation Failed',
-        }), 500
-    return jsonify({
-        'success': True,
-        'message': 'Teacher updated',
-        'teacher': {
-            'id': teacher.id,
-            'name': teacher.name,
-            'email': teacher.email,
-            'pay_per_lecture': teacher.pay_per_lecture,
-            'is_active': 'Active' if teacher.is_active else 'Inactive',
-            'bank_info': teacher.bank_info
-        }
-    }), 200
+        return jsonify({ 'success': False, 'error': 'Teacher Updation Failed' }), 500
+
+    data = teacher.to_dict()
+
+    return jsonify({ 'success': True, 'message': 'Teacher updated', 'teacher': data}), 200
 
 @admin_bp.route('/timetables')
 @login_required

@@ -87,8 +87,8 @@
             }
 
             if (password.length < 8) {
-                // showAlert('Password must be at least 8 characters long.', 'danger');
-                // return;
+                showAlert('Password must be at least 8 characters long.', 'danger');
+                return;
             }
 
             const payload = { name: name, email: email, password: password, role: role };

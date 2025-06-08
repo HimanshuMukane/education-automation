@@ -158,6 +158,7 @@
                                 <tr data-teacher-id="{{ teacher.id }}" data-teacher-name="{{ teacher.name }}"
                                     data-teacher-email="{{ teacher.email }}"
                                     data-teacher-pay="{{ teacher.pay_per_lecture }}"
+                                    data-is-active="{{teacher.is_active|lower }}"
                                     data-bank-name="{{teacher.bank_info.bankName }}"
                                     data-account-number="{{teacher.bank_info.AccountNumber }}"
                                     data-ifsc-code="{{teacher.bank_info.ifscCode }}"
@@ -168,19 +169,19 @@
                                     <td class="teacher-pay">₹{{ teacher.pay_per_lecture|int }}</td>
                                     <td class="teacher-payment-details">
                                         <span class="bank-name">Bank Name:{{ teacher.bank_info.bankName }}</span> <br>
-                                        <span
-                                            class="bankAddress">Bank Address:{{ teacher.bank_info.bankAddress }}</span>
+                                        <span class="bankAddress">Bank
+                                            Address:{{ teacher.bank_info.bankAddress }}</span>
                                         <br>
-                                        <span
-                                            class="account-number">Account Number:{{ teacher.bank_info.AccountNumber }}</span>
+                                        <span class="account-number">Account
+                                            Number:{{ teacher.bank_info.AccountNumber }}</span>
                                         <br>
                                         <span class="ifsc-code">IFSC:{{ teacher.bank_info.ifscCode }}</span> <br>
                                     </td>
                                     <td class="teacher-isActive">
                                         {% if teacher.is_active %}
-                                            Active
+                                        Active
                                         {% else %}
-                                            Inactive
+                                        Inactive
                                         {% endif %}
                                     </td>
 
@@ -237,6 +238,13 @@
                                 </button>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="editTeacherStatus" class="form-label">Account Status</label>
+                            <select class="form-select" id="editTeacherStatus" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="card mt-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -251,7 +259,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="editBankAddress" class="form-label">Bank Address</label>
-                                    <input type="text" class="form-control" id="editBankAddress"/>
+                                    <input type="text" class="form-control" id="editBankAddress" />
                                 </div>
                                 <div class="col-md-6">
                                     <label for="editAccountNumber" class="form-label">Account Number</label>
@@ -260,7 +268,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="editIfscCode" class="form-label">IFSC Code</label>
-                                    <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS"/>
+                                    <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS" />
                                 </div>
                             </div>
                         </div>
@@ -443,32 +451,28 @@
             tr.setAttribute("data-teacher-name", teacher.name);
             tr.setAttribute("data-teacher-email", teacher.email);
             tr.setAttribute("data-teacher-pay", teacher.pay_per_lecture);
+            tr.setAttribute("data-is-active", teacher.is_active);
 
-            tr.setAttribute("data-bank-name", teacher.bankName);
-            tr.setAttribute("data-account-number", teacher.accountNumber);
-            tr.setAttribute("data-ifsc-code", teacher.ifsc_code);
-            tr.setAttribute("data-bank-address", teacher.bankAddress);
+            tr.setAttribute("data-bank-name", teacher.bank_info.bankName);
+            tr.setAttribute("data-bank-address", teacher.bank_info.bankAddress);
+            tr.setAttribute("data-account-number", teacher.bank_info.AccountNumber);
+            tr.setAttribute("data-ifsc-code", teacher.bank_info.ifscCode);
 
-            tr.innerHTML = `
-        <td>${teacher.id}</td>
-        <td class="teacher-name">${teacher.name}</td>
-        <td class="teacher-email">${teacher.email}</td>
-        <td class="teacher-pay">₹ ${teacher.pay_per_lecture}</td>
-        <td class="teacher-payment-details">
-        <span class="bank-name">Bank Name:${ teacher.bank_info.bankName }</span> <br>
-        <span
-            class="bankAddress">Bank Address:${ teacher.bank_info.bankAddress }</span>
-        <br>
-        <span
-            class="account-number">Account Number:${ teacher.bank_info.AccountNumber }</span>
-        <br>
-        <span class="ifsc-code">IFSC:${ teacher.bank_info.ifscCode }</span> <br>
-        </td>
-        <td class="teacher-isActive">${teacher.is_active}</td>
-        <td class="text-end">
-          <button class="btn btn-sm btn-primary edit-teacher-btn"><i class="bi bi-pencil-square"></i></button>
-          <button class="btn btn-sm btn-danger delete-teacher-btn"><i class="bi bi-trash"></i></button>
-        </td>`;
+            tr.innerHTML = `<td>${teacher.id}</td>
+<td class="teacher-name">${teacher.name}</td>
+<td class="teacher-email">${teacher.email}</td>
+<td class="teacher-pay">₹ ${teacher.pay_per_lecture}</td>
+<td class="teacher-payment-details">
+    <span class="bank-name">Bank Name:${teacher.bank_info.bankName}</span><br>
+    <span class="bankAddress">Bank Address:${teacher.bank_info.bankAddress}</span><br>
+    <span class="account-number">Account Number:${teacher.bank_info.AccountNumber}</span><br>
+    <span class="ifsc-code">IFSC:${teacher.bank_info.ifscCode}</span><br>
+</td>
+<td class="teacher-isActive">${teacher.is_active ? "Active" : "Inactive"}</td>
+<td class="text-end">
+<button class="btn btn-sm btn-primary edit-teacher-btn"><i class="bi bi-pencil-square"></i></button>
+<button class="btn btn-sm btn-danger delete-teacher-btn"><i class="bi bi-trash"></i></button>
+</td>`;
             tbody.prepend(tr);
         }
 
@@ -495,13 +499,14 @@
                 const AccountNumber = row.getAttribute("data-account-number");
                 const ifscCode = row.getAttribute("data-ifsc-code");
                 const bankAddress = row.getAttribute("data-bank-address");
-                openEditModal(teacherId, tName, tEmail, tPay, bankName, AccountNumber, ifscCode, bankAddress);
+                const isActive = row.getAttribute("data-is-active");
+                openEditModal(teacherId, tName, tEmail, tPay, bankName, AccountNumber, ifscCode, bankAddress, isActive);
             }
         });
 
         // ── EDIT MODAL logic ───────────────────────────────────────────────────────
         let editModal = new bootstrap.Modal(document.getElementById("editTeacherModal"));
-        function openEditModal(id, name, email, pay, bankName, AccountNumber, ifscCode, bankAddress) {
+        function openEditModal(id, name, email, pay, bankName, AccountNumber, ifscCode, bankAddress, isActive) {
             document.getElementById("editTeacherId").value = id;
             document.getElementById("editTeacherName").value = name;
             document.getElementById("editTeacherEmail").value = email;
@@ -510,6 +515,7 @@
             document.getElementById("editAccountNumber").value = AccountNumber;
             document.getElementById("editIfscCode").value = ifscCode;
             document.getElementById("editBankAddress").value = bankAddress;
+            document.getElementById("editTeacherStatus").value = isActive === "true" ? "true" : "false";
             document.getElementById("editTeacherPassword").value = "";
             document.getElementById("editFeedback").innerHTML = ""; // clear previous feedback
             editModal.show();
@@ -527,12 +533,12 @@
             const newAccountNumber = document.getElementById("editAccountNumber").value.trim();
             const newIfscCode = document.getElementById("editIfscCode").value.trim();
             const newbankAddress = document.getElementById("editBankAddress").value.trim();
-            
+            const isActive = document.getElementById("editTeacherStatus").value==="true"?true:false;
             const paymentDetails = {}
-            paymentDetails['bankName'] = newBankName; 
-            paymentDetails['AccountNumber'] = newAccountNumber; 
-            paymentDetails['ifscCode'] = newIfscCode; 
-            paymentDetails['bankAddress'] = newbankAddress; 
+            paymentDetails['bankName'] = newBankName;
+            paymentDetails['AccountNumber'] = newAccountNumber;
+            paymentDetails['ifscCode'] = newIfscCode;
+            paymentDetails['bankAddress'] = newbankAddress;
 
             if (!newName || !newEmail || !newPayRaw) {
                 showEditFeedback("Name, Email, and Pay per Lecture are required.", false);
@@ -544,7 +550,7 @@
                 showEditFeedback("Please enter a valid, non-negative number for Pay per Lecture.", false);
                 return;
             }
-            let payload = { name: newName, email: newEmail, pay_per_lecture: newPay, id: id, paymentDetails:paymentDetails};
+            let payload = { name: newName, email: newEmail, pay_per_lecture: newPay, id: id, paymentDetails: paymentDetails, is_active: isActive };
             if (newPwd.trim()) {
                 payload.password = newPwd;
             }
@@ -567,19 +573,21 @@
                         const row = document.querySelector(`tr[data-teacher-id="${id}"]`);
                         row.setAttribute("data-teacher-name", body.teacher.name);
                         row.setAttribute("data-teacher-email", body.teacher.email);
-                        row.setAttribute("data-teacher-pay", +body.teacher.pay_per_lecture);
-                        row.setAttribute("data-bank-name", +body.teacher.bankName);
-                        row.setAttribute("data-account-number", +body.teacher.accountNumber);
-                        row.setAttribute("data-ifsc-code", +body.teacher.ifsc_code);
-                        row.setAttribute("data-bank-address", +body.teacher.bankAddress);
+                        row.setAttribute("data-teacher-pay", body.teacher.pay_per_lecture);
+                        row.setAttribute("data-is-active", body.teacher.is_active);
+                        row.setAttribute("data-bank-name", body.teacher.bank_info.bankName);
+                        row.setAttribute("data-account-number", body.teacher.bank_info.AccountNumber);
+                        row.setAttribute("data-ifsc-code", body.teacher.bank_info.ifscCode);
+                        row.setAttribute("data-bank-address", body.teacher.bank_info.bankAddress);
 
                         row.querySelector(".teacher-name").textContent = body.teacher.name;
                         row.querySelector(".teacher-email").textContent = body.teacher.email;
+                        row.querySelector(".teacher-isActive").textContent = body.teacher.is_active ? "Active" : "Inactive";
                         row.querySelector(".teacher-pay").textContent = "₹" + body.teacher.pay_per_lecture;
-                        row.querySelector(".bank-name").textContent = "Bank Name: "+body.teacher.bank_info.bankName;
-                        row.querySelector(".bankAddress").textContent = "Bank Address: "+body.teacher.bank_info.bankAddress;
-                        row.querySelector(".ifsc-code").textContent = "Account Number: "+body.teacher.bank_info.AccountNumber;
-                        row.querySelector(".account-number").textContent = "IFSC Code: "+body.teacher.bank_info.ifscCode;
+                        row.querySelector(".bank-name").textContent = "Bank Name: " + body.teacher.bank_info.bankName;
+                        row.querySelector(".bankAddress").textContent = "Bank Address: " + body.teacher.bank_info.bankAddress;
+                        row.querySelector(".ifsc-code").textContent = "IFSC Code: " + body.teacher.bank_info.ifscCode;
+                        row.querySelector(".account-number").textContent = "Account Number: " + body.teacher.bank_info.AccountNumber;
                         // NOT GETTING FLOAT VALUE AFTER UPDATE
                         setTimeout(() => {
                             editModal.hide();
@@ -634,6 +642,7 @@
                 )
                 .then(({ status, body }) => {
                     if (status === 200 && body.success) {
+                        window.location.reload()
                         document.querySelector(`tr[data-teacher-id="${deletingTeacherId}"]`).remove();
                         showDeleteFeedback(body.message, true);
                         setTimeout(() => {

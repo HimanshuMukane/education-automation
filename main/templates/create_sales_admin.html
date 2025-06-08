@@ -57,7 +57,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Create Sales Account</span>
                 </div>
-                <div class="card-body" id="createAdminForm">
+                <div class="card-body">
                     <form id="createAdminForm">
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -67,16 +67,14 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="emailInput" class="form-label">Email*</label>
-                                <input type="email" class="form-control" id="emailInput"
-                                    placeholder="sales@example.com" required />
+                                <input type="email" class="form-control" id="emailInput" placeholder="sales@example.com"
+                                    required />
                             </div>
                             <div class="col-md-6">
                                 <label for="passwordInp" class="form-label">Password*</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="passwordInp"
                                         placeholder="Enter a password" required />
-                                    <input type="hidden" name="role" id="roleInput" value="admin">
-                                    
                                     <button class="btn btn-outline-secondary" type="button"
                                         onclick="togglePassword('passwordInp')">
                                         <i class="bi bi-eye"></i>
@@ -98,12 +96,11 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Existing Sales Accounts</span>
                     <div class="d-flex gap-2">
-                        <input type="text" class="form-control form-control-sm" id="teacherSearch"
+                        <input type="text" class="form-control form-control-sm" id="adminSearch"
                             placeholder="Search Sales...">
-                        <select class="form-select form-select-sm" id="teacherSort">
+                        <select class="form-select form-select-sm" id="adminSort">
                             <option value="name">Sort by Name</option>
                             <option value="email">Sort by Email</option>
-                            <option value="pay">Sort by Pay</option>
                         </select>
                     </div>
                 </div>
@@ -122,17 +119,15 @@
                             <tbody id="adminsTableBody">
                                 {% for admin in admins %}
                                 <tr data-admin-id="{{ admin.id }}" data-admin-name="{{ admin.name }}"
-                                    data-admin-email="{{ admin.email }}"
-                                    data-is-active="{{ admin.is_active}}"
-                                    >
+                                    data-admin-email="{{ admin.email }}" data-is-active="{{ admin.is_active | lower}}">
                                     <td>{{ admin.id }}</td>
                                     <td class="admin-name">{{ admin.name }}</td>
                                     <td class="admin-email">{{ admin.email }}</td>
-                                    <td class="admin-pay">
+                                    <td class="admin-isActive">
                                         {% if admin.is_active %}
-                                            Active
+                                        Active
                                         {% else %}
-                                            Inactive
+                                        Inactive
                                         {% endif %}
                                     </td>
                                     <td class="text-end">
@@ -184,44 +179,12 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
-                    <div class="card mt-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span>Payment Details</span>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="editBankName" class="form-label">Bank Name</label>
-                                    <input type="text" class="form-control" id="editBankName"
-                                        placeholder="Name of the Bank" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editAccountNumber" class="form-label">Account Number</label>
-                                    <input type="number" class="form-control" id="editAccountNumber"
-                                        placeholder="eg. 6980000XXXX" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editIfscCode" class="form-label">IFSC Code</label>
-                                    <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS"
-                                        required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editAccountType" class="form-label">Account Type : </label>
-                                    <input type="text" class="form-control" id="editAccountType"
-                                        placeholder="eg. Current / Saving" required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editMobileNumber" class="form-label">Mobile Number</label>
-                                    <input type="number" class="form-control" id="editMobileNumber"
-                                        placeholder="eg. 98163XXXXX" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editUpiID" class="form-label">UPI ID</label>
-                                    <input type="text" class="form-control" id="editUpiID"
-                                        placeholder="eg. xyz@example" />
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="editAdminStatus" class="form-label">Account Status</label>
+                            <select class="form-select" id="editAdminStatus" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -273,9 +236,9 @@
         }
 
         // Search functionality
-        document.getElementById('teacherSearch').addEventListener('input', function (e) {
+        document.getElementById('adminSearch').addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#teachersTableBody tr');
+            const rows = document.querySelectorAll('#adminsTableBody tr');
 
             rows.forEach(row => {
                 const name = row.querySelector('.admin-name').textContent.toLowerCase();
@@ -286,21 +249,14 @@
         });
 
         // Sort functionality
-        document.getElementById('teacherSort').addEventListener('change', function (e) {
+        document.getElementById('adminSort').addEventListener('change', function (e) {
             const sortBy = e.target.value;
-            const tbody = document.getElementById('teachersTableBody');
+            const tbody = document.getElementById('adminsTableBody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
 
             rows.sort((a, b) => {
                 let aVal = a.querySelector(`.admin-${sortBy}`).textContent;
                 let bVal = b.querySelector(`.admin-${sortBy}`).textContent;
-
-                if (sortBy === 'pay') {
-                    aVal = parseFloat(aVal.replace('₹', ''));
-                    bVal = parseFloat(bVal.replace('₹', ''));
-                    return bVal - aVal;
-                }
-
                 return aVal.localeCompare(bVal);
             });
 
@@ -310,73 +266,48 @@
 
     <!-- Keep existing JavaScript for CRUD operations -->
     <script>
-        // ── CREATE TEACHER (unchanged) ───────────────────────────────────────────────
+        // ── CREATE admin (unchanged) ───────────────────────────────────────────────
         document
-            .getElementById("createAdminForm")
-            .addEventListener("submit", function (e) {
+            .getElementById("createAdminForm").addEventListener("submit", function (e) {
                 e.preventDefault();
 
-                const name = document.getElementById("teacherName").value.trim();
-                const email = document.getElementById("teacherEmail").value.trim().toLowerCase();
-                const password = document.getElementById("teacherPassword").value;
-                const payRaw = document.getElementById("teacherPay").value;
-                const paymentDetails = {}
-                paymentDetails['bankName'] = document.getElementById("bankName").value;
-                paymentDetails['AccountNumber'] = document.getElementById("accountNumber").value;
-                paymentDetails['ifscCode'] = document.getElementById("ifscCode").value;
-                paymentDetails['accountType'] = document.getElementById("accountType").value;
-                paymentDetails['mobileNumber'] = document.getElementById("mobileNumber").value;
-                paymentDetails['upiID'] = document.getElementById("upiID").value;
+                const name = document.getElementById("nameInput").value.trim();
+                const email = document.getElementById("emailInput").value.trim().toLowerCase();
+                const password = document.getElementById("passwordInp").value;
 
-                if (!name || !email || !password || !payRaw) {
+                if (!name || !email || !password) {
                     showCreateFeedback(
-                        "All fields (Name, Email, Password, Pay per Lecture) are required.",
+                        "All fields (Name, Email, Password) are required.",
                         false
                     );
                     return;
                 }
+                const payload = { name: name, email: email, password: password, role: 'admin' };
 
-                const pay_per_lecture = parseFloat(payRaw);
-                if (isNaN(pay_per_lecture) || pay_per_lecture < 0) {
-                    showCreateFeedback(
-                        "Please enter a valid, non-negative number for Pay per Lecture.",
-                        false
-                    );
-                    return;
-                }
 
-                fetch("{{ url_for('admin.create_teacher') }}", {
+                fetch('{{ url_for("admin.create_sales") }}', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        name,
-                        email,
-                        password,
-                        pay_per_lecture,
-                        paymentDetails
-                    }),
-                })
-                    .then((res) =>
-                        res.json().then((data) => ({
-                            status: res.status,
-                            body: data,
-                        }))
+                    body: JSON.stringify(payload)
 
-                    )
-                    .then(({ status, body }) => {
+                }).then((res) =>
+                    res.json().then((data) => ({
+                        status: res.status,
+                        body: data,
+                    }))
 
-                        if (status === 200 && body.success) {
-                            showCreateFeedback(body.message, true);
-                            prependAdminRow(body.admin);
-                            //document.getElementById("createAdminForm").reset();
-                        } else {
-                            showCreateFeedback(body.error || "Failed to create admin.", false);
-                        }
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        showCreateFeedback("An unexpected error occurred.", false);
-                    });
+                ).then(({ status, body }) => {
+                    if (status === 200 && body.success) {
+                        showCreateFeedback(body.message, true);
+                        console.log(body)
+                        prependAdminRow(body.data);
+                    } else {
+                        showCreateFeedback(body.error || "Failed to create admin.", false);
+                    }
+                }).catch((err) => {
+                    console.error(err);
+                    showCreateFeedback("An unexpected error occurred.", false);
+                });
             });
 
         function showCreateFeedback(msg, isSuccess) {
@@ -399,17 +330,18 @@
         }
 
         function prependAdminRow(admin) {
-            const tbody = document.getElementById("teachersTableBody");
+            console.log(admin)
+            const tbody = document.getElementById("adminsTableBody");
             const tr = document.createElement("tr");
             tr.setAttribute("data-admin-id", admin.id);
             tr.setAttribute("data-admin-name", admin.name);
             tr.setAttribute("data-admin-email", admin.email);
-            tr.setAttribute("data-admin-pay", admin.pay_per_lecture);
+            tr.setAttribute("data-is-active", admin.is_active);
             tr.innerHTML = `
         <td>${admin.id}</td>
         <td class="admin-name">${admin.name}</td>
         <td class="admin-email">${admin.email}</td>
-        <td class="admin-pay">₹ ${admin.pay_per_lecture}</td>
+        <td class="admin-is-active">${admin.is_active ? "Active" : "Inactive"}</td>
         <td class="text-end">
           <button class="btn btn-sm btn-primary edit-admin-btn"><i class="bi bi-pencil-square"></i></button>
           <button class="btn btn-sm btn-danger delete-admin-btn"><i class="bi bi-trash"></i></button>
@@ -418,47 +350,35 @@
         }
 
         // ── EDIT / DELETE event delegation ───────────────────────────────────────────
-        const teachersTbody = document.getElementById("teachersTableBody");
-        teachersTbody.addEventListener("click", function (e) {
+        const adminsTbody = document.getElementById("adminsTableBody");
+        adminsTbody.addEventListener("click", function (e) {
             const row = e.target.closest("tr");
-            const teacherId = row?.getAttribute("data-admin-id");
-            if (!teacherId) return;
+            const adminId = row?.getAttribute("data-admin-id");
+            if (!adminId) return;
 
             // ── DELETE button clicked → show Delete Modal ───────────────────────────
             if (e.target.classList.contains("delete-admin-btn")) {
-                const teacherName = row.getAttribute("data-admin-name") || "";
-                openDeleteModal(teacherId, teacherName);
+                const adminName = row.getAttribute("data-admin-name") || "";
+                openDeleteModal(adminId, adminName);
             }
 
             // ── EDIT button clicked → show Edit Modal ───────────────────────────────
             if (e.target.classList.contains("edit-admin-btn")) {
                 const tName = row.getAttribute("data-admin-name");
                 const tEmail = row.getAttribute("data-admin-email");
-                const tPay = row.getAttribute("data-admin-pay");
+                const isActive = row.getAttribute("data-is-active");
 
-                const bankName = row.getAttribute("data-bank-name");
-                const AccountNumber = row.getAttribute("data-account-number");
-                const ifscCode = row.getAttribute("data-ifsc-code");
-                const accountType = row.getAttribute("data-account-type");
-                const mobileNumber = row.getAttribute("data-mobile-number");
-                const upiID = row.getAttribute("data-upi-id");
-                openEditModal(teacherId, tName, tEmail, tPay, bankName, AccountNumber, ifscCode, accountType, mobileNumber, upiID);
+                openEditModal(adminId, tName, tEmail, isActive);
             }
         });
 
         // ── EDIT MODAL logic ───────────────────────────────────────────────────────
         let editModal = new bootstrap.Modal(document.getElementById("editAdminModal"));
-        function openEditModal(id, name, email, pay, bankName, AccountNumber, ifscCode, accountType, mobileNumber, upiID) {
+        function openEditModal(id, name, email, isActive) {
             document.getElementById("editAdminId").value = id;
             document.getElementById("editAdminName").value = name;
             document.getElementById("editAdminEmail").value = email;
-            document.getElementById("editAdminPay").value = pay;
-            document.getElementById("editBankName").value = bankName;
-            document.getElementById("editAccountNumber").value = AccountNumber;
-            document.getElementById("editIfscCode").value = ifscCode;
-            document.getElementById("editAccountType").value = accountType;
-            document.getElementById("editMobileNumber").value = mobileNumber;
-            document.getElementById("editUpiID").value = upiID;
+            document.getElementById("editAdminStatus").value = isActive === "true" ? "true" : "false";
             document.getElementById("editAdminPassword").value = "";
             document.getElementById("editFeedback").innerHTML = ""; // clear previous feedback
             editModal.show();
@@ -470,39 +390,20 @@
             const id = document.getElementById("editAdminId").value;
             const newName = document.getElementById("editAdminName").value.trim();
             const newEmail = document.getElementById("editAdminEmail").value.trim().toLowerCase();
-            const newPayRaw = document.getElementById("editAdminPay").value;
-            const newPwd = document.getElementById("editAdminPassword").value;
-            const newBankName = document.getElementById("editBankName").value.trim();
-            const newAccountNumber = document.getElementById("editAccountNumber").value.trim();
-            const newIfscCode = document.getElementById("editIfscCode").value.trim();
-            const newAccountType = document.getElementById("editAccountType").value.trim();
-            const newMobileNumber = document.getElementById("editMobileNumber").value.trim();
-            const newUpiID = document.getElementById("editUpiID").value.trim();
-            
-            const paymentDetails = {}
-            paymentDetails['bankName'] = newBankName; 
-            paymentDetails['AccountNumber'] = newAccountNumber; 
-            paymentDetails['ifscCode'] = newIfscCode; 
-            paymentDetails['accountType'] = newAccountType; 
-            paymentDetails['mobileNumber'] = newMobileNumber; 
-            paymentDetails['upiID'] = newUpiID; 
+            const newPwd = document.getElementById("editAdminPassword").value
+            const isActive = document.getElementById("editAdminStatus").value==="true"?true:false;
 
-            if (!newName || !newEmail || !newPayRaw) {
+            if (!newName || !newEmail) {
                 showEditFeedback("Name, Email, and Pay per Lecture are required.", false);
                 return;
             }
 
-            const newPay = parseFloat(newPayRaw);
-            if (isNaN(newPay) || newPay < 0) {
-                showEditFeedback("Please enter a valid, non-negative number for Pay per Lecture.", false);
-                return;
-            }
-            let payload = { name: newName, email: newEmail, pay_per_lecture: newPay, id: id, paymentDetails:paymentDetails};
+            let payload = { name: newName, email: newEmail, id: id, is_active:isActive };
             if (newPwd.trim()) {
                 payload.password = newPwd;
             }
 
-            fetch("{{url_for('admin.modify_teacher')}}", {
+            fetch("{{url_for('admin.modify_sales')}}", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
@@ -520,10 +421,11 @@
                         const row = document.querySelector(`tr[data-admin-id="${id}"]`);
                         row.setAttribute("data-admin-name", body.admin.name);
                         row.setAttribute("data-admin-email", body.admin.email);
-                        row.setAttribute("data-admin-pay", +body.admin.pay_per_lecture);
+                        row.setAttribute("data-is-active", body.admin.is_active);
+                        
+                        row.querySelector(".admin-isActive").textContent = body.admin.is_active ? "Active" : "Inactive";
                         row.querySelector(".admin-name").textContent = body.admin.name;
                         row.querySelector(".admin-email").textContent = body.admin.email;
-                        row.querySelector(".admin-pay").textContent = "₹" + body.admin.pay_per_lecture;
                         // NOT GETTING FLOAT VALUE AFTER UPDATE
                         setTimeout(() => {
                             editModal.hide();
@@ -565,7 +467,7 @@
         document.getElementById("confirmDeleteBtn").addEventListener("click", function () {
             if (!deletingAdminId) return;
 
-            fetch("{{url_for('admin.modify_teacher')}}", {
+            fetch("{{url_for('admin.modify_sales')}}", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "id": deletingAdminId })
@@ -578,6 +480,7 @@
                 )
                 .then(({ status, body }) => {
                     if (status === 200 && body.success) {
+                        window.location.reload()
                         document.querySelector(`tr[data-admin-id="${deletingAdminId}"]`).remove();
                         showDeleteFeedback(body.message, true);
                         setTimeout(() => {

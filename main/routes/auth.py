@@ -51,62 +51,6 @@ def login():
         # Unknown role → force to login page again
         return redirect(url_for('index.login'))
 
-
-@auth_bp.route('/create-account', methods=['POST'])
-@login_required
-@is_admin(1)
-def create_account():
-    data = request.get_json()
-    if not data:
-        return jsonify({'success': True, 'error': 'No data provided'}), 400
-    
-    name = data.get('name', '').strip()
-    email = data.get('email', '').strip().lower()
-    password = data.get('password', '')
-    role = data.get('role','').strip().lower()
-
-    if not all([name, email, password, role]):
-        return jsonify({'success': False, 'error': 'Missing required fields'}), 400
-
-    if role == 'admin':
-        if Admin.query.filter_by(email=email).first():
-            return jsonify({'success' : False, 'error': 'Email already exists'}), 400
-
-        hashed_password = generate_password_hash(password)
-        new_admin = Admin(
-            name=name,
-            email=email,
-            password=hashed_password,
-            level=2
-        )
-        result = util_db_add(new_admin)
-        if not result.get('success'):
-            return jsonify({'success': False, 'error': 'User creation error'}), 500
-        return jsonify({'success': True, 'message': 'User created successfully', 'data': new_admin.to_dict()}), 200
-    
-    elif role == 'teacher':
-        bank_info = data.get('bank_info', {})
-        pay_per_lecture = data.get('pay_per_lecture')
-
-        if not pay_per_lecture :
-            return jsonify({'success' : False, 'error': 'Pay per lecture is required'}), 400
-
-        if Teacher.query.filter_by(email=email).first():
-            return jsonify({'success' : False, 'error': 'Email already exists'}), 400
-         
-        hashed_password = generate_password_hash(password)
-        new_teacher = Teacher(
-            name=name,
-            email=email,
-            bank_info=bank_info,
-            pay_per_lecture=pay_per_lecture,
-            password=hashed_password
-        )
-        result = util_db_add(new_teacher)
-        if not result.get('success'):
-            return jsonify({'success': False, 'error': 'User creation error'}), 500
-        return jsonify({'success': True, 'message': 'User created successfully', 'data': new_teacher.to_dict()}), 200
-
 @auth_bp.route('/logout')
 def logout():
     session.clear()
