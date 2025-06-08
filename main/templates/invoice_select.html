@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>Select Month for Invoice</h2>
+  <form method="post" class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Month</label>
+      <select name="month" class="form-select" required>
+        {% for val, name in months %}
+          <option value="{{ val }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Year</label>
+      <input type="number" name="year" value="{{ now().year }}" class="form-control" required />
+    </div>
+    <div class="col-md-4 align-self-end">
+      <button class="btn btn-primary">Generate PDF</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
