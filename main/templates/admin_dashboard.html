@@ -99,6 +99,11 @@
                                             placeholder="Name of the Bank" />
                                     </div>
                                     <div class="col-md-6">
+                                        <label for="bankAddress" class="form-label">Bank Address : </label>
+                                        <input type="text" class="form-control" id="bankAddress"
+                                            placeholder="Bank Address" required />
+                                    </div>
+                                    <div class="col-md-6">
                                         <label for="accountNumber" class="form-label">Account Number</label>
                                         <input type="number" class="form-control" id="accountNumber"
                                             placeholder="eg. 6980000XXXX" />
@@ -107,21 +112,6 @@
                                         <label for="ifscCode" class="form-label">IFSC Code</label>
                                         <input type="text" class="form-control" id="ifscCode" placeholder="IFSCS"
                                             required />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="accountType" class="form-label">Account Type : </label>
-                                        <input type="text" class="form-control" id="accountType"
-                                            placeholder="eg. Current / Saving" required />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="mobileNumber" class="form-label">Mobile Number</label>
-                                        <input type="number" class="form-control" id="mobileNumber"
-                                            placeholder="eg. 98163XXXXX" />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="upiID" class="form-label">UPI ID</label>
-                                        <input type="text" class="form-control" id="upiID"
-                                            placeholder="eg. xyz@example" />
                                     </div>
                                 </div>
                             </div>
@@ -159,49 +149,50 @@
                                     <th>Email</th>
                                     <th>Pay/Lecture</th>
                                     <th>Payment Details</th>
+                                    <th>Is Active</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="teachersTableBody">
                                 {% for teacher in teachers %}
-                                {% if teacher.is_active %}
                                 <tr data-teacher-id="{{ teacher.id }}" data-teacher-name="{{ teacher.name }}"
                                     data-teacher-email="{{ teacher.email }}"
                                     data-teacher-pay="{{ teacher.pay_per_lecture }}"
                                     data-bank-name="{{teacher.bank_info.bankName }}"
                                     data-account-number="{{teacher.bank_info.AccountNumber }}"
                                     data-ifsc-code="{{teacher.bank_info.ifscCode }}"
-                                    data-account-type="{{teacher.bank_info.accountType }}"
-                                    data-mobile-number="{{teacher.bank_info.mobileNumber }}"
-                                    data-upi-id="{{teacher.bank_info.upiID }}">
+                                    data-bank-address="{{teacher.bank_info.bankAddress }}">
                                     <td>{{ teacher.id }}</td>
                                     <td class="teacher-name">{{ teacher.name }}</td>
                                     <td class="teacher-email">{{ teacher.email }}</td>
                                     <td class="teacher-pay">₹{{ teacher.pay_per_lecture|int }}</td>
                                     <td class="teacher-payment-details">
-                                        <span class="bank-name">bankName:{{ teacher.bank_info.bankName }}</span> <br>
+                                        <span class="bank-name">Bank Name:{{ teacher.bank_info.bankName }}</span> <br>
                                         <span
-                                            class="account-number">AccountNumber:{{ teacher.bank_info.AccountNumber }}</span>
-                                        <br>
-                                        <span class="ifsc-code">ifscCode:{{ teacher.bank_info.ifscCode }}</span> <br>
-                                        <span
-                                            class="account-type">accountType:{{ teacher.bank_info.accountType }}</span>
+                                            class="bankAddress">Bank Address:{{ teacher.bank_info.bankAddress }}</span>
                                         <br>
                                         <span
-                                            class="mobile-number">mobileNumber:{{ teacher.bank_info.mobileNumber }}</span>
+                                            class="account-number">Account Number:{{ teacher.bank_info.AccountNumber }}</span>
                                         <br>
-                                        <span class="upi-id">upiID:{{ teacher.bank_info.upiID }}</span> <br>
+                                        <span class="ifsc-code">IFSC:{{ teacher.bank_info.ifscCode }}</span> <br>
                                     </td>
+                                    <td class="teacher-isActive">
+                                        {% if teacher.is_active %}
+                                            Active
+                                        {% else %}
+                                            Inactive
+                                        {% endif %}
+                                    </td>
+
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-primary edit-teacher-btn">
-                                            <i class="bi bi-pencil-square"></i>
+                                            <i class="bi bi-pencil-square edit-teacher-btn"></i>
                                         </button>
                                         <button class="btn btn-sm btn-danger delete-teacher-btn">
-                                            <i class="bi bi-trash"></i>
+                                            <i class="bi bi-trash delete-teacher-btn"></i>
                                         </button>
                                     </td>
                                 </tr>
-                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -259,29 +250,17 @@
                                         placeholder="Name of the Bank" />
                                 </div>
                                 <div class="col-md-6">
+                                    <label for="editBankAddress" class="form-label">Bank Address</label>
+                                    <input type="text" class="form-control" id="editBankAddress"/>
+                                </div>
+                                <div class="col-md-6">
                                     <label for="editAccountNumber" class="form-label">Account Number</label>
                                     <input type="number" class="form-control" id="editAccountNumber"
                                         placeholder="eg. 6980000XXXX" />
                                 </div>
                                 <div class="col-md-6">
                                     <label for="editIfscCode" class="form-label">IFSC Code</label>
-                                    <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS"
-                                        required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editAccountType" class="form-label">Account Type : </label>
-                                    <input type="text" class="form-control" id="editAccountType"
-                                        placeholder="eg. Current / Saving" required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editMobileNumber" class="form-label">Mobile Number</label>
-                                    <input type="number" class="form-control" id="editMobileNumber"
-                                        placeholder="eg. 98163XXXXX" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editUpiID" class="form-label">UPI ID</label>
-                                    <input type="text" class="form-control" id="editUpiID"
-                                        placeholder="eg. xyz@example" />
+                                    <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS"/>
                                 </div>
                             </div>
                         </div>
@@ -386,10 +365,7 @@
                 paymentDetails['bankName'] = document.getElementById("bankName").value;
                 paymentDetails['AccountNumber'] = document.getElementById("accountNumber").value;
                 paymentDetails['ifscCode'] = document.getElementById("ifscCode").value;
-                paymentDetails['accountType'] = document.getElementById("accountType").value;
-                paymentDetails['mobileNumber'] = document.getElementById("mobileNumber").value;
-                paymentDetails['upiID'] = document.getElementById("upiID").value;
-
+                paymentDetails['bankAddress'] = document.getElementById("bankAddress").value;
                 if (!name || !email || !password || !payRaw) {
                     showCreateFeedback(
                         "All fields (Name, Email, Password, Pay per Lecture) are required.",
@@ -467,11 +443,28 @@
             tr.setAttribute("data-teacher-name", teacher.name);
             tr.setAttribute("data-teacher-email", teacher.email);
             tr.setAttribute("data-teacher-pay", teacher.pay_per_lecture);
+
+            tr.setAttribute("data-bank-name", teacher.bankName);
+            tr.setAttribute("data-account-number", teacher.accountNumber);
+            tr.setAttribute("data-ifsc-code", teacher.ifsc_code);
+            tr.setAttribute("data-bank-address", teacher.bankAddress);
+
             tr.innerHTML = `
         <td>${teacher.id}</td>
         <td class="teacher-name">${teacher.name}</td>
         <td class="teacher-email">${teacher.email}</td>
         <td class="teacher-pay">₹ ${teacher.pay_per_lecture}</td>
+        <td class="teacher-payment-details">
+        <span class="bank-name">Bank Name:${ teacher.bank_info.bankName }</span> <br>
+        <span
+            class="bankAddress">Bank Address:${ teacher.bank_info.bankAddress }</span>
+        <br>
+        <span
+            class="account-number">Account Number:${ teacher.bank_info.AccountNumber }</span>
+        <br>
+        <span class="ifsc-code">IFSC:${ teacher.bank_info.ifscCode }</span> <br>
+        </td>
+        <td class="teacher-isActive">${teacher.is_active}</td>
         <td class="text-end">
           <button class="btn btn-sm btn-primary edit-teacher-btn"><i class="bi bi-pencil-square"></i></button>
           <button class="btn btn-sm btn-danger delete-teacher-btn"><i class="bi bi-trash"></i></button>
@@ -501,16 +494,14 @@
                 const bankName = row.getAttribute("data-bank-name");
                 const AccountNumber = row.getAttribute("data-account-number");
                 const ifscCode = row.getAttribute("data-ifsc-code");
-                const accountType = row.getAttribute("data-account-type");
-                const mobileNumber = row.getAttribute("data-mobile-number");
-                const upiID = row.getAttribute("data-upi-id");
-                openEditModal(teacherId, tName, tEmail, tPay, bankName, AccountNumber, ifscCode, accountType, mobileNumber, upiID);
+                const bankAddress = row.getAttribute("data-bank-address");
+                openEditModal(teacherId, tName, tEmail, tPay, bankName, AccountNumber, ifscCode, bankAddress);
             }
         });
 
         // ── EDIT MODAL logic ───────────────────────────────────────────────────────
         let editModal = new bootstrap.Modal(document.getElementById("editTeacherModal"));
-        function openEditModal(id, name, email, pay, bankName, AccountNumber, ifscCode, accountType, mobileNumber, upiID) {
+        function openEditModal(id, name, email, pay, bankName, AccountNumber, ifscCode, bankAddress) {
             document.getElementById("editTeacherId").value = id;
             document.getElementById("editTeacherName").value = name;
             document.getElementById("editTeacherEmail").value = email;
@@ -518,9 +509,7 @@
             document.getElementById("editBankName").value = bankName;
             document.getElementById("editAccountNumber").value = AccountNumber;
             document.getElementById("editIfscCode").value = ifscCode;
-            document.getElementById("editAccountType").value = accountType;
-            document.getElementById("editMobileNumber").value = mobileNumber;
-            document.getElementById("editUpiID").value = upiID;
+            document.getElementById("editBankAddress").value = bankAddress;
             document.getElementById("editTeacherPassword").value = "";
             document.getElementById("editFeedback").innerHTML = ""; // clear previous feedback
             editModal.show();
@@ -537,17 +526,13 @@
             const newBankName = document.getElementById("editBankName").value.trim();
             const newAccountNumber = document.getElementById("editAccountNumber").value.trim();
             const newIfscCode = document.getElementById("editIfscCode").value.trim();
-            const newAccountType = document.getElementById("editAccountType").value.trim();
-            const newMobileNumber = document.getElementById("editMobileNumber").value.trim();
-            const newUpiID = document.getElementById("editUpiID").value.trim();
+            const newbankAddress = document.getElementById("editBankAddress").value.trim();
             
             const paymentDetails = {}
             paymentDetails['bankName'] = newBankName; 
             paymentDetails['AccountNumber'] = newAccountNumber; 
             paymentDetails['ifscCode'] = newIfscCode; 
-            paymentDetails['accountType'] = newAccountType; 
-            paymentDetails['mobileNumber'] = newMobileNumber; 
-            paymentDetails['upiID'] = newUpiID; 
+            paymentDetails['bankAddress'] = newbankAddress; 
 
             if (!newName || !newEmail || !newPayRaw) {
                 showEditFeedback("Name, Email, and Pay per Lecture are required.", false);
@@ -583,9 +568,18 @@
                         row.setAttribute("data-teacher-name", body.teacher.name);
                         row.setAttribute("data-teacher-email", body.teacher.email);
                         row.setAttribute("data-teacher-pay", +body.teacher.pay_per_lecture);
+                        row.setAttribute("data-bank-name", +body.teacher.bankName);
+                        row.setAttribute("data-account-number", +body.teacher.accountNumber);
+                        row.setAttribute("data-ifsc-code", +body.teacher.ifsc_code);
+                        row.setAttribute("data-bank-address", +body.teacher.bankAddress);
+
                         row.querySelector(".teacher-name").textContent = body.teacher.name;
                         row.querySelector(".teacher-email").textContent = body.teacher.email;
                         row.querySelector(".teacher-pay").textContent = "₹" + body.teacher.pay_per_lecture;
+                        row.querySelector(".bank-name").textContent = "Bank Name: "+body.teacher.bank_info.bankName;
+                        row.querySelector(".bankAddress").textContent = "Bank Address: "+body.teacher.bank_info.bankAddress;
+                        row.querySelector(".ifsc-code").textContent = "Account Number: "+body.teacher.bank_info.AccountNumber;
+                        row.querySelector(".account-number").textContent = "IFSC Code: "+body.teacher.bank_info.ifscCode;
                         // NOT GETTING FLOAT VALUE AFTER UPDATE
                         setTimeout(() => {
                             editModal.hide();

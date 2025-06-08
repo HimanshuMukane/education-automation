@@ -1,5 +1,5 @@
 from flask import Blueprint, request, session, render_template, redirect, url_for, jsonify
-from main.models import Timetable, Teacher
+from main.models import Timetable, Teacher, Admin
 from main.utils import util_db_add, util_db_update, util_db_delete, generate_password_hash, login_required, is_admin
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -10,6 +10,14 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 def dashboard():
     teachers = Teacher.query.all()
     return render_template('admin_dashboard.html', teachers=teachers)
+
+@admin_bp.route('/create/sales')
+@login_required
+@is_admin(2)
+def create_sales():
+    admins = Admin.query.filter_by(level=2)
+    return render_template('create_sales_admin.html', admins=admins)
+
 
 @admin_bp.route('/create-teacher', methods=['POST'])
 @login_required
@@ -52,7 +60,6 @@ def create_teacher():
             'success': False,
             'error': 'Teacher Creation Failed',
         }), 500
-
     return jsonify({
         'success': True,
         'message': 'Teacher created successfully',
@@ -60,7 +67,9 @@ def create_teacher():
             'id': new_teacher.id,
             'name': new_teacher.name,
             'email': new_teacher.email,
-            'pay_per_lecture': float(new_teacher.pay_per_lecture)
+            'is_active': 'Active' if new_teacher.is_active else 'Inactive',
+            'pay_per_lecture': float(new_teacher.pay_per_lecture),
+            "bank_info":new_teacher.bank_info
         }
     }), 200
 
@@ -113,9 +122,7 @@ def modify_teacher():
         teacher.password = generate_password_hash(password)
     
     if bankInfo:
-        print("here")
         teacher.bank_info = bankInfo
-        print(teacher.bank_info)
 
     result = util_db_update()
     if not result.get("success"):
@@ -123,7 +130,6 @@ def modify_teacher():
             'success': False,
             'error': 'Teacher Updation Failed',
         }), 500
-    
     return jsonify({
         'success': True,
         'message': 'Teacher updated',
@@ -131,7 +137,9 @@ def modify_teacher():
             'id': teacher.id,
             'name': teacher.name,
             'email': teacher.email,
-            'pay_per_lecture': teacher.pay_per_lecture
+            'pay_per_lecture': teacher.pay_per_lecture,
+            'is_active': 'Active' if teacher.is_active else 'Inactive',
+            'bank_info': teacher.bank_info
         }
     }), 200
 

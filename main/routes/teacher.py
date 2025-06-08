@@ -1,14 +1,15 @@
-from sqlalchemy import or_
 import os
 import subprocess
+import tempfile
+
 from datetime import datetime
-from flask import (
-    Blueprint, render_template, session, redirect,
-    url_for, request, flash, current_app
-)
+from flask import Blueprint, request, session, current_app, render_template, redirect, url_for, flash, send_file
+from sqlalchemy import or_
+
 from werkzeug.utils import secure_filename
-from main.models import Timetable, Teacher
+
 from main.extensions import db
+from main.models import Timetable, Teacher
 from main.utils import login_required
 
 teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
@@ -95,12 +96,6 @@ def dashboard():
         return redirect(url_for('index.login'))
 
     return render_template('teacher_dashboard.html', teacher_name=user.get('name'))
-
-
-
-import tempfile
-import subprocess
-from flask import send_file
 
 @teacher_bp.route('/invoice', methods=['GET', 'POST'])
 @login_required
