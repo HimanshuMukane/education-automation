@@ -94,3 +94,70 @@ def dashboard():
         return redirect(url_for('index.login'))
 
     return render_template('teacher_dashboard.html', teacher_name=user.get('name'))
+
+
+
+import tempfile
+import subprocess
+from flask import send_file
+
+@teacher_bp.route('/invoice', methods=['GET', 'POST'])
+@login_required
+def generate_invoice():
+    user = session.get('user')
+    teacher = Teacher.query.filter_by(email=user.get('email')).first()
+    if not teacher:
+        flash('Teacher not found', 'danger')
+        return redirect(url_for('teacher.mark_attendance'))
+
+    if request.method == 'GET':
+        # months dropdown
+        months = [
+            ('01', 'January'), ('02', 'February'), ('03', 'March'), ('04', 'April'),
+            ('05', 'May'), ('06', 'June'), ('07', 'July'), ('08', 'August'),
+            ('09', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
+        ]
+        return render_template('invoice_select.html', months=months)
+
+    # POST
+    month = request.form.get('month')  # '01'-'12'
+    year = request.form.get('year')    # '2025', etc
+    # fetch all marked lectures for this teacher in selected month
+    entries = Timetable.query.filter(
+        Timetable.teacher_id == teacher.id,
+        Timetable.is_present == True,
+        db.extract('month', Timetable.date) == int(month),
+        db.extract('year', Timetable.date) == int(year)
+    ).order_by(Timetable.date).all()
+
+    total_lectures = len(entries)
+    total_amount = total_lectures * teacher.pay_per_lecture
+
+    # render HTML
+    rendered = render_template('invoice_template.html',
+        teacher=teacher,
+        entries=entries,
+        total_lectures=total_lectures,
+        total_amount=total_amount,
+        month=month,
+        year=year
+    )
+
+    # create temp files
+    tmp_html = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
+    tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    tmp_html.write(rendered.encode('utf-8'))
+    tmp_html.flush()
+
+    # convert to PDF via wkhtmltopdf
+    subprocess.run([
+        'wkhtmltopdf', tmp_html.name, tmp_pdf.name
+    ], check=True)
+
+    # send and cleanup
+    pdf_path = tmp_pdf.name
+    tmp_html.close()
+    tmp_pdf.close()
+    return send_file(pdf_path,
+                     as_attachment=True,
+                     download_name=f"invoice_{teacher.id}_{year}{month}.pdf")
