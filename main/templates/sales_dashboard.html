@@ -2,149 +2,267 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Sales Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet" />
-    <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sales Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet" />
+  <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet" />
 </head>
 
-<body class="d-flex">
-    <!-- Sidebar -->
-    <div class="sidebar d-none d-md-block">
-        {% include '_partials/_sidebar.html' %}
+<body class="p-4">
+
+  <!-- Sidebar -->
+  <div class="sidebar d-none d-md-block">
+    {% include '_partials/_sidebar.html' %}
+  </div>
+
+  <!-- Mobile Navigation -->
+  <nav class="navbar navbar-dark bg-dark d-md-none fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Admin Dashboard</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+  </nav>
+  <div class="offcanvas offcanvas-start d-md-none" id="mobileSidebar">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Menu</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      {% include '_partials/_sidebar.html' %}
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content flex-grow-1">
+    <h1 class="mb-4">Sales Dashboard</h1>
+    <p class="text-muted">Date: {{ current_date }}</p>
+
+    <!-- Payment Entry Card -->
+    <div class="card mb-4">
+      <div class="card-header">Record Student Payment</div>
+      <div class="card-body">
+        <form id="salesForm" class="row g-3">
+          <div class="col-md-3">
+            <label for="grade" class="form-label">Grade</label>
+            <input type="text" class="form-control" id="grade" placeholder="e.g. 5" required>
+          </div>
+          <div class="col-md-4">
+            <label for="studentName" class="form-label">Student Name</label>
+            <input type="text" class="form-control" id="studentName" placeholder="First Last" required>
+          </div>
+          <div class="col-md-3">
+            <label for="totalFee" class="form-label">Total Fee</label>
+            <input type="number" class="form-control" id="totalFee" placeholder="Enter if new" readonly>
+          </div>
+          <div class="col-md-2">
+            <label for="paid" class="form-label">Paid Now</label>
+            <input type="number" step="0.01" class="form-control" id="paid" required>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-success">Submit &amp; Download Invoice</button>
+          </div>
+          <div id="salesFeedback" class="col-12"></div>
+        </form>
+      </div>
     </div>
 
-    <!-- Mobile Navigation -->
-    <nav class="navbar navbar-dark bg-dark d-md-none fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Sales Dashboard</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <!-- Existing Payments Table -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Existing Records</span>
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control form-control-sm" id="recordSearch" placeholder="Search...">
+          <select class="form-select form-select-sm" id="gradeFilter">
+            <option value="">All Grades</option>
+            {% for g in range(1,13) %}<option value="{{g}}">{{g}}</option>{% endfor %}
+          </select>
         </div>
-    </nav>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead class="table-light">
+  <tr>
+    <th>ID</th>
+    <th>Grade</th>
+    <th>Name</th>
+    <th>Total Fee</th>
+    <th>Paid</th>
+    <th>Date</th>
+    <th class="text-end">Actions</th>
+  </tr>
+</thead>
+<tbody id="recordsBody">
+  {% for inv in invoices %}
+  <tr data-inv-id="{{ inv.id }}" data-grade="{{ inv.grade }}" data-name="{{ inv.fname }} {{ inv.lname }}">
+    <td>{{ inv.id }}</td>
+    <td>{{ inv.grade }}</td>
+    <td>{{ inv.fname }} {{ inv.lname }}</td>
+    <td>₹{{ inv.total_fees }}</td>
+    <td>₹{{ inv.fees_paid }}</td>
+    <td>{{ inv.date }}</td>
+    <td class="text-end">
+      <a href="{{ url_for('sales.download_invoice', inv_id=inv.id) }}"
+         class="btn btn-sm btn-outline-primary me-1">
+        <i class="bi bi-download"></i>
+      </a>
+      <button class="btn btn-sm btn-outline-secondary edit-record-btn me-1">
+        <i class="bi bi-pencil"></i>
+      </button>
+      <button class="btn btn-sm btn-outline-danger delete-record-btn">
+        <i class="bi bi-trash"></i>
+      </button>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
 
-    <!-- Mobile Sidebar -->
-    <div class="offcanvas offcanvas-start d-md-none" id="mobileSidebar">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title">Menu</h5>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+          </table>
         </div>
-        <div class="offcanvas-body">
-            {% include '_partials/_sidebar.html' %}
-        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Main Content -->
-    <div class="main-content flex-grow-1">
-        <div class="container-fluid">
-            <!-- Welcome Section -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3">Sales Dashboard</h1>
-                    <p class="text-muted">Welcome, {{ session.user.name }}!</p>
-                </div>
-                <div class="d-none d-md-block">
-                    <span class="text-muted">{{ current_date }}</span>
-                </div>
-            </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function fetchFee() {
+      const grade = document.getElementById('grade').value.trim();
+      const name = document.getElementById('studentName').value.trim();
+      if (!grade || !name) return;
+      fetch(`{{ url_for('sales.lookup_fee') }}?grade=${encodeURIComponent(grade)}&name=${encodeURIComponent(name)}`)
+        .then(r => r.json())
+        .then(data => {
+          const tf = document.getElementById('totalFee');
+          if (data.success) {
+            tf.value = data.total_fees;
+            tf.readOnly = true;
+          } else if (data.new) {
+            tf.value = '';
+            tf.readOnly = false;
+          } else {
+            tf.value = '';
+            tf.readOnly = false;
+            showFeedback(data.error, false);
+          }
+        })
+        .catch(_ => showFeedback('Lookup failed', false));
+    }
 
-            <!-- Create student Card -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Generate Student Invoice</span>
-                </div>
-                <div class="card-body collapse show" id="createstudentForm">
-                    <form id="createstudentForm">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="studentName" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="studentName" placeholder="student full name"
-                                    required />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="studentGrade" class="form-label">Grade</label>
-                                <input type="text" class="form-control" id="studentGrade"
-                                    placeholder="Grade 9A" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="studentTotalFee" class="form-label">Total Fee (₹)</label>
-                                <input type="number" step="0.01" class="form-control" id="studentTotalFee"
-                                    placeholder="e.g. 250.00" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="studentFeePaid" class="form-label"> Fee Paid(₹)</label>
-                                <input type="number" step="0.01" class="form-control" id="studentFeePaid"
-                                    placeholder="e.g. 250.00" required />
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-person-plus-fill me-2"></i>Search student
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    document.getElementById('grade').addEventListener('change', fetchFee);
+    document.getElementById('studentName').addEventListener('blur', fetchFee);
 
-            <!-- students List -->
-            <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Existing students</span>
-                    <div class="d-flex gap-2">
-                        <input type="text" class="form-control form-control-sm" id="studentSearch"
-                            placeholder="Search students...">
-                        <select class="form-select form-select-sm" id="studentSort">
-                            <option value="name">Sort by Name</option>
-                            <option value="grade">Sort by Grade</option>
-                            <option value="pay">Sort by Pay</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Grade</th>
-                                    <th>Pay/Lecture</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentsTableBody">
-                                {% for student in students %}
-                                <tr data-student-id="{{ student.id }}" data-student-name="{{ student.name }}"
-                                    data-student-grade="{{ student.grade }}"
-                                    data-student-total_fees="{{ student.total_fees }}"
-                                    data-student-fees_paid="{{ student.fees_paid }}">
-                                    <td>{{ student.id }}</td>
-                                    <td class="student-name">{{ student.name }}</td>
-                                    <td class="student-grade">{{ student.grade }}</td>
-                                    <td class="student-total_fees">₹{{ student.total_fees }}</td>
-                                    <td class="student-fees_paid">₹{{ student.fees_paid }}</td>
-                                    <td class="text-end">
-                                        <button class="btn btn-sm btn-primary">
-                                            <i class="bi bi-pencil-download"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    document.getElementById('salesForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const grade = this.grade.value.trim();
+      const name = this.studentName.value.trim();
+      const paid = this.paid.value;
+      const total = this.totalFee.value;
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
- 
+      fetch(`{{ url_for('sales.record_payment') }}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grade, name, fees_paid: paid, total_fees: total })
+      })
+        .then(r => {
+          if (!r.ok) return r.json().then(j => Promise.reject(j.error || 'Error'));
+          return r.blob();
+        })
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'invoice.pdf';
+          a.click();
+          URL.revokeObjectURL(url);
+          location.reload();
+        })
+        .catch(err => showFeedback(err, false));
+    });
+
+    function showFeedback(msg, isSuccess) {
+      const fb = document.getElementById('salesFeedback');
+      fb.innerHTML = `<div class="alert ${isSuccess ? 'alert-success' : 'alert-danger'} mt-3">${msg}</div>`;
+      if (isSuccess) setTimeout(() => fb.innerHTML = '', 2000);
+    }
+
+    // Event delegation on the records table
+const recordsTbody = document.getElementById('recordsBody');
+
+recordsTbody.addEventListener('click', e => {
+  const tr = e.target.closest('tr');
+  if (!tr) return;
+  const invId = tr.dataset.invId;
+
+  // ── DELETE ────────────────────────────────────────────────────────────────
+  if (e.target.closest('.delete-record-btn')) {
+    if (!confirm(`Delete invoice #${invId}?`)) return;
+    fetch(`{{ url_for('sales.delete_record', inv_id=0) }}`.replace('0', invId), {
+      method: 'DELETE',
+      headers: {'Content-Type':'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        tr.remove();
+      } else {
+        alert('Delete failed: ' + data.error);
+      }
+    })
+    .catch(() => alert('Delete request failed'));
+  }
+
+  // ── EDIT ──────────────────────────────────────────────────────────────────
+  if (e.target.closest('.edit-record-btn')) {
+    // Prefill your form or open a modal...
+    // Example: prompt for new paid amount
+    const currentPaid = tr.children[4].textContent.replace('₹','').trim();
+    const newPaid = prompt('New total paid amount for this invoice:', currentPaid);
+    if (newPaid === null) return;  // cancelled
+    fetch(`{{ url_for('sales.edit_record', inv_id=0) }}`.replace('0', invId), {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ fees_paid: parseFloat(newPaid) })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        // update the row’s “Paid” cell
+        tr.children[4].textContent = '₹' + data.new_paid;
+      } else {
+        alert('Update failed: ' + data.error);
+      }
+    })
+    .catch(() => alert('Update request failed'));
+  }
+});
+
+  </script>
+    <script>
+    // Common search + grade filter for Existing Records
+    const searchInput = document.getElementById('recordSearch');
+    const gradeFilter = document.getElementById('gradeFilter');
+    const rows = document.querySelectorAll('#recordsBody tr');
+
+    function filterRecords() {
+      const term = searchInput.value.toLowerCase();
+      const gradeVal = gradeFilter.value;
+      rows.forEach(row => {
+        const matchesTerm = row.dataset.name.toLowerCase().includes(term)
+                         || row.dataset.grade.includes(term);
+        const matchesGrade = !gradeVal || row.dataset.grade === gradeVal;
+        row.style.display = (matchesTerm && matchesGrade) ? '' : 'none';
+      });
+    }
+
+    searchInput.addEventListener('input', filterRecords);
+    gradeFilter.addEventListener('change', filterRecords);
+  </script>
+
 </body>
 
 </html>

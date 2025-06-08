@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    h2 { text-align: center; margin-bottom: 1em; }
+    table { width: 100%; border-collapse: collapse; margin-top:1em; }
+    th, td { border: 1px solid #444; padding: 0.5em; text-align: right; }
+    th { background: #f0f0f0; }
+    .left { text-align: left; }
+  </style>
+</head>
+<body>
+  <h2>Invoice</h2>
+  <p><strong>Date:</strong> {{ invoice.date }}</p>
+  <p><strong>Student:</strong> {{ student.fname }} {{ student.lname }}</p>
+  <p><strong>Grade:</strong> {{ student.grade }}</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="left">Description</th>
+        <th>Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="left">Tuition Fees</td><td>{{ breakdown.tuition }}</td></tr>
+      <tr><td class="left">Books</td><td>{{ breakdown.books }}</td></tr>
+      <tr><td class="left">E-Books</td><td>{{ breakdown.ebook }}</td></tr>
+      <tr><td class="left">Kit</td><td>{{ breakdown.kit }}</td></tr>
+      <tr><td class="left">Uniform</td><td>{{ breakdown.uniform }}</td></tr>
+      <tr><td class="left">Bag</td><td>{{ breakdown.bag }}</td></tr>
+      <tr><td class="left">Extracurricular</td><td>{{ breakdown.activity }}</td></tr>
+      <tr><th class="left">Total</th><th>₹{{ invoice.total_fees }}</th></tr>
+      <tr><td class="left"><strong>Paid Amount</strong></td><td><strong>₹{{ invoice.fees_paid }}</strong></td></tr>
+      <tr><th class="left">Balance Due</th><th>₹{{ invoice.total_fees - student.fees_paid }}</th></tr>
+    </tbody>
+  </table>
+</body>
+</html>
