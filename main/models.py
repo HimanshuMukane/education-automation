@@ -1,5 +1,5 @@
 from main.extensions import db
-from datetime import datetime
+from datetime import datetime, time
 
 class BaseModel(db.Model):
     __abstract__ = True
@@ -10,17 +10,29 @@ class BaseModel(db.Model):
     def to_dict(self):
         result = {}
         for column in self.__table__.columns:
-            value = getattr(self, column.name)
-            if value == 'password':
-                continue
-            if isinstance(value, datetime):
-                result[column.name] = value.isoformat()
-            elif isinstance(value, dict):
-                result[column.name] = value
-            else:
-                result[column.name] = value
-        return result
+            col_name = column.name
+            value = getattr(self, col_name)
 
+            # Skip password field by name
+            if col_name == 'password':
+                continue
+
+            # Handle datetime
+            if isinstance(value, datetime):
+                result[col_name] = value.isoformat()
+
+            # Handle time
+            elif isinstance(value, time):
+                result[col_name] = value.strftime('%H:%M:%S')
+
+            # Handle JSON/dict fields (e.g., bank_info)
+            elif isinstance(value, dict):
+                result[col_name] = value
+
+            else:
+                result[col_name] = value
+
+        return result
 
 class Admin(BaseModel):
     __tablename__ = 'admins'

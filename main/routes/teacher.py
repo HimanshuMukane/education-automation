@@ -89,6 +89,7 @@ def handle_attendance_upload():
 
     flash('Attendance marked and video saved successfully!', 'success')
     return redirect(url_for('teacher.mark_attendance'))
+    
 @teacher_bp.route('/dashboard')
 def dashboard():
     user = session.get('user')

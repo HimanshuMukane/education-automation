@@ -8,9 +8,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @login_required
 @is_admin(2)
 def dashboard():
-    teachers = Teacher.query.all()
-    return render_template('admin_dashboard.html', teachers=teachers)
-
+    return redirect(url_for('admin.create_teacher'))
 @admin_bp.route('/create/sales', methods=['GET', 'POST'])
 @login_required
 @is_admin(2)
@@ -101,10 +99,14 @@ def modify_sales():
     return jsonify({ 'success': True, 'message': 'Admin updated', 'admin': data}), 200
 
 
-@admin_bp.route('/create/teacher', methods=['POST'])
+@admin_bp.route('/create/teacher', methods=['GET','POST'])
 @login_required
 @is_admin(1)
 def create_teacher():
+    if request.method == "GET":
+        teachers = Teacher.query.all()
+        return render_template('admin_dashboard.html', teachers=teachers)
+
     data = request.get_json()
     name = data.get('name','').strip()
     email = data.get('email','').strip().lower()
@@ -241,11 +243,8 @@ def create_timetable():
     result = util_db_add(new_entry)
     if not result.get('success'):
         return jsonify({'success': False, 'error': 'Creation failed'}), 500
-    resp = new_entry.to_dict()
-    return jsonify({
-        'success': True,
-        'data': resp
-    }), 200
+        
+    return jsonify({ 'success': True, 'data': new_entry.to_dict()}), 200
 
 @admin_bp.route('/timetable/modify', methods=['PUT', 'DELETE'])
 @login_required

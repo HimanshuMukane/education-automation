@@ -25,32 +25,13 @@
                 <i class="bi bi-person-plus-fill me-2"></i>Timetable
             </a>
         </li>
-        <li>
-            <a href="{{ url_for('admin.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-bar-chart-fill me-2"></i>View Reports
-            </a>
-        </li>
+
 
         {# ── Level‐2 Admin (Sales) Options ──────────────────────────────────────── #}
         {% elif user.role == 'admin' and user.level == 2 %}
         <li class="nav-item">
             <a href="{{ url_for('sales.dashboard') }}" class="nav-link link-dark">
                 <i class="bi bi-graph-up-arrow me-2"></i>Sales Home
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('sales.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-basket-fill me-2"></i>Manage Orders
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('sales.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-person-lines-fill me-2"></i>Manage Leads
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('sales.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-pie-chart-fill me-2"></i>Analytics
             </a>
         </li>
 
@@ -64,16 +45,6 @@
         <li>
             <a href="{{ url_for('teacher.generate_invoice') }}" class="nav-link link-dark">
                 <i class="bi bi-book-fill me-2"></i>generate_invoice
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('teacher.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-check2-square me-2"></i>Attendance
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('teacher.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-pencil-fill me-2"></i>Enter Grades
             </a>
         </li>
         {% endif %}
