@@ -137,7 +137,7 @@
         end_time: document.getElementById('end_time').value,
         teacher_id: document.getElementById('teacher_id').value
       };
-      fetch("{{ url_for('admin.create_entry') }}", {
+      fetch("{{ url_for('admin.create_timetable') }}", {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify(payload)

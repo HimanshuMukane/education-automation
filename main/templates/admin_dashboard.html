@@ -56,26 +56,22 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Create Teacher Account</span>
-                    <!-- <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse"
-            data-bs-target="#createTeacherForm">
-            <i class="bi bi-plus-lg"></i>
-          </button> -->
                 </div>
-                <div class="card-body collapse show" id="createTeacherForm">
+                <div class="card-body" id="createTeacherForm">
                     <form id="createTeacherForm">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="teacherName" class="form-label">Name</label>
+                                <label for="teacherName" class="form-label">Name*</label>
                                 <input type="text" class="form-control" id="teacherName" placeholder="Teacher full name"
                                     required />
                             </div>
                             <div class="col-md-6">
-                                <label for="teacherEmail" class="form-label">Email</label>
+                                <label for="teacherEmail" class="form-label">Email*</label>
                                 <input type="email" class="form-control" id="teacherEmail"
                                     placeholder="teacher@example.com" required />
                             </div>
                             <div class="col-md-6">
-                                <label for="teacherPassword" class="form-label">Password</label>
+                                <label for="teacherPassword" class="form-label">Password*</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="teacherPassword"
                                         placeholder="Enter a password" required />
@@ -86,9 +82,48 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="teacherPay" class="form-label">Pay per Lecture (₹)</label>
+                                <label for="teacherPay" class="form-label">Pay per Lecture (₹)*</label>
                                 <input type="number" step="0.01" class="form-control" id="teacherPay"
                                     placeholder="e.g. 250.00" required />
+                            </div>
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Payment Details</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="bankName" class="form-label">Bank Name</label>
+                                        <input type="text" class="form-control" id="bankName"
+                                            placeholder="Name of the Bank" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="accountNumber" class="form-label">Account Number</label>
+                                        <input type="number" class="form-control" id="accountNumber"
+                                            placeholder="eg. 6980000XXXX" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="ifscCode" class="form-label">IFSC Code</label>
+                                        <input type="text" class="form-control" id="ifscCode" placeholder="IFSCS"
+                                            required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="accountType" class="form-label">Account Type : </label>
+                                        <input type="text" class="form-control" id="accountType"
+                                            placeholder="eg. Current / Saving" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="mobileNumber" class="form-label">Mobile Number</label>
+                                        <input type="number" class="form-control" id="mobileNumber"
+                                            placeholder="eg. 98163XXXXX" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="upiID" class="form-label">UPI ID</label>
+                                        <input type="text" class="form-control" id="upiID"
+                                            placeholder="eg. xyz@example" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="mt-3">
@@ -123,29 +158,50 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Pay/Lecture</th>
+                                    <th>Payment Details</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="teachersTableBody">
                                 {% for teacher in teachers %}
-                                    {% if teacher.is_active %}
-                                    <tr data-teacher-id="{{ teacher.id }}" data-teacher-name="{{ teacher.name }}"
+                                {% if teacher.is_active %}
+                                <tr data-teacher-id="{{ teacher.id }}" data-teacher-name="{{ teacher.name }}"
                                     data-teacher-email="{{ teacher.email }}"
-                                        data-teacher-pay="{{ teacher.pay_per_lecture }}">
-                                        <td>{{ teacher.id }}</td>
-                                        <td class="teacher-name">{{ teacher.name }}</td>
-                                        <td class="teacher-email">{{ teacher.email }}</td>
-                                        <td class="teacher-pay">₹{{ teacher.pay_per_lecture|int }}</td>
-                                        <td class="text-end">
-                                            <button class="btn btn-sm btn-primary edit-teacher-btn">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger delete-teacher-btn">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endif %}
+                                    data-teacher-pay="{{ teacher.pay_per_lecture }}"
+                                    data-bank-name="{{teacher.bank_info.bankName }}"
+                                    data-account-number="{{teacher.bank_info.AccountNumber }}"
+                                    data-ifsc-code="{{teacher.bank_info.ifscCode }}"
+                                    data-account-type="{{teacher.bank_info.accountType }}"
+                                    data-mobile-number="{{teacher.bank_info.mobileNumber }}"
+                                    data-upi-id="{{teacher.bank_info.upiID }}">
+                                    <td>{{ teacher.id }}</td>
+                                    <td class="teacher-name">{{ teacher.name }}</td>
+                                    <td class="teacher-email">{{ teacher.email }}</td>
+                                    <td class="teacher-pay">₹{{ teacher.pay_per_lecture|int }}</td>
+                                    <td class="teacher-payment-details">
+                                        <span class="bank-name">bankName:{{ teacher.bank_info.bankName }}</span> <br>
+                                        <span
+                                            class="account-number">AccountNumber:{{ teacher.bank_info.AccountNumber }}</span>
+                                        <br>
+                                        <span class="ifsc-code">ifscCode:{{ teacher.bank_info.ifscCode }}</span> <br>
+                                        <span
+                                            class="account-type">accountType:{{ teacher.bank_info.accountType }}</span>
+                                        <br>
+                                        <span
+                                            class="mobile-number">mobileNumber:{{ teacher.bank_info.mobileNumber }}</span>
+                                        <br>
+                                        <span class="upi-id">upiID:{{ teacher.bank_info.upiID }}</span> <br>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-primary edit-teacher-btn">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-teacher-btn">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -188,6 +244,45 @@
                                     onclick="togglePassword('editTeacherPassword')">
                                     <i class="bi bi-eye"></i>
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mt-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Payment Details</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="editBankName" class="form-label">Bank Name</label>
+                                    <input type="text" class="form-control" id="editBankName"
+                                        placeholder="Name of the Bank" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editAccountNumber" class="form-label">Account Number</label>
+                                    <input type="number" class="form-control" id="editAccountNumber"
+                                        placeholder="eg. 6980000XXXX" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editIfscCode" class="form-label">IFSC Code</label>
+                                    <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS"
+                                        required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editAccountType" class="form-label">Account Type : </label>
+                                    <input type="text" class="form-control" id="editAccountType"
+                                        placeholder="eg. Current / Saving" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editMobileNumber" class="form-label">Mobile Number</label>
+                                    <input type="number" class="form-control" id="editMobileNumber"
+                                        placeholder="eg. 98163XXXXX" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editUpiID" class="form-label">UPI ID</label>
+                                    <input type="text" class="form-control" id="editUpiID"
+                                        placeholder="eg. xyz@example" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -283,15 +378,17 @@
             .addEventListener("submit", function (e) {
                 e.preventDefault();
 
-                const name = document
-                    .getElementById("teacherName")
-                    .value.trim();
-                const email = document
-                    .getElementById("teacherEmail")
-                    .value.trim()
-                    .toLowerCase();
+                const name = document.getElementById("teacherName").value.trim();
+                const email = document.getElementById("teacherEmail").value.trim().toLowerCase();
                 const password = document.getElementById("teacherPassword").value;
                 const payRaw = document.getElementById("teacherPay").value;
+                const paymentDetails = {}
+                paymentDetails['bankName'] = document.getElementById("bankName").value;
+                paymentDetails['AccountNumber'] = document.getElementById("accountNumber").value;
+                paymentDetails['ifscCode'] = document.getElementById("ifscCode").value;
+                paymentDetails['accountType'] = document.getElementById("accountType").value;
+                paymentDetails['mobileNumber'] = document.getElementById("mobileNumber").value;
+                paymentDetails['upiID'] = document.getElementById("upiID").value;
 
                 if (!name || !email || !password || !payRaw) {
                     showCreateFeedback(
@@ -318,6 +415,7 @@
                         email,
                         password,
                         pay_per_lecture,
+                        paymentDetails
                     }),
                 })
                     .then((res) =>
@@ -399,20 +497,34 @@
                 const tName = row.getAttribute("data-teacher-name");
                 const tEmail = row.getAttribute("data-teacher-email");
                 const tPay = row.getAttribute("data-teacher-pay");
-                openEditModal(teacherId, tName, tEmail, tPay);
+
+                const bankName = row.getAttribute("data-bank-name");
+                const AccountNumber = row.getAttribute("data-account-number");
+                const ifscCode = row.getAttribute("data-ifsc-code");
+                const accountType = row.getAttribute("data-account-type");
+                const mobileNumber = row.getAttribute("data-mobile-number");
+                const upiID = row.getAttribute("data-upi-id");
+                openEditModal(teacherId, tName, tEmail, tPay, bankName, AccountNumber, ifscCode, accountType, mobileNumber, upiID);
             }
         });
 
         // ── EDIT MODAL logic ───────────────────────────────────────────────────────
         let editModal = new bootstrap.Modal(document.getElementById("editTeacherModal"));
-        function openEditModal(id, name, email, pay) {
+        function openEditModal(id, name, email, pay, bankName, AccountNumber, ifscCode, accountType, mobileNumber, upiID) {
             document.getElementById("editTeacherId").value = id;
             document.getElementById("editTeacherName").value = name;
             document.getElementById("editTeacherEmail").value = email;
             document.getElementById("editTeacherPay").value = pay;
+            document.getElementById("editBankName").value = bankName;
+            document.getElementById("editAccountNumber").value = AccountNumber;
+            document.getElementById("editIfscCode").value = ifscCode;
+            document.getElementById("editAccountType").value = accountType;
+            document.getElementById("editMobileNumber").value = mobileNumber;
+            document.getElementById("editUpiID").value = upiID;
             document.getElementById("editTeacherPassword").value = "";
             document.getElementById("editFeedback").innerHTML = ""; // clear previous feedback
             editModal.show();
+
         }
 
         document.getElementById("editTeacherForm").addEventListener("submit", function (e) {
@@ -422,6 +534,20 @@
             const newEmail = document.getElementById("editTeacherEmail").value.trim().toLowerCase();
             const newPayRaw = document.getElementById("editTeacherPay").value;
             const newPwd = document.getElementById("editTeacherPassword").value;
+            const newBankName = document.getElementById("editBankName").value.trim();
+            const newAccountNumber = document.getElementById("editAccountNumber").value.trim();
+            const newIfscCode = document.getElementById("editIfscCode").value.trim();
+            const newAccountType = document.getElementById("editAccountType").value.trim();
+            const newMobileNumber = document.getElementById("editMobileNumber").value.trim();
+            const newUpiID = document.getElementById("editUpiID").value.trim();
+            
+            const paymentDetails = {}
+            paymentDetails['bankName'] = newBankName; 
+            paymentDetails['AccountNumber'] = newAccountNumber; 
+            paymentDetails['ifscCode'] = newIfscCode; 
+            paymentDetails['accountType'] = newAccountType; 
+            paymentDetails['mobileNumber'] = newMobileNumber; 
+            paymentDetails['upiID'] = newUpiID; 
 
             if (!newName || !newEmail || !newPayRaw) {
                 showEditFeedback("Name, Email, and Pay per Lecture are required.", false);
@@ -433,8 +559,7 @@
                 showEditFeedback("Please enter a valid, non-negative number for Pay per Lecture.", false);
                 return;
             }
-
-            let payload = { name: newName, email: newEmail, pay_per_lecture: newPay, id: id };
+            let payload = { name: newName, email: newEmail, pay_per_lecture: newPay, id: id, paymentDetails:paymentDetails};
             if (newPwd.trim()) {
                 payload.password = newPwd;
             }

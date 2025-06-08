@@ -1,9 +1,7 @@
+import os
 import uuid
-from imghdr import what as whatImg
-
-from re import sub as reg_sub
-from os import makedirs as makeDirectory
-from os.path import join as pathJoin
+import re
+import imghdr
 
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
@@ -77,8 +75,8 @@ def util_normalize_string(string: str) -> dict | None:
         event_logger.warning("util_normalize_string called with empty input")
         return None
 
-    string = reg_sub(r'\s+', ' ', string.strip())
-    unified = reg_sub(r'[-_]', ' ', string)
+    string = re.sub(r'\s+', ' ', string.strip())
+    unified = re.sub(r'[-_]', ' ', string)
 
     words = unified.split()
     title = ' '.join(word.capitalize() for word in words)
@@ -117,7 +115,7 @@ def util_upload_image(image_file: FileStorage, filename: str, upload_folder: str
     def is_allowed(filename: str, stream) -> bool:
         ext = filename.rsplit('.', 1)[-1].lower()
         valid_ext = ext in allowed_extensions
-        valid_mime = whatImg(stream) in allowed_extensions
+        valid_mime = imghdr.what(stream) in allowed_extensions
         return valid_ext and valid_mime
 
     try:
@@ -129,9 +127,9 @@ def util_upload_image(image_file: FileStorage, filename: str, upload_folder: str
         safe_filename = secure_filename(filename.replace(" ", "-"))
         unique_suffix = uuid.uuid4().hex[:8]
         final_filename = f"{safe_filename}_{unique_suffix}.{file_ext}"
-        filepath = pathJoin(upload_folder, final_filename)
+        filepath = os.path.join(upload_folder, final_filename)
 
-        makeDirectory(upload_folder, exist_ok=True)
+        os.makedirs(upload_folder, exist_ok=True)
 
         event_logger.info(f"Uploading image: {final_filename} to {upload_folder}")
 

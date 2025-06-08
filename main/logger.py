@@ -1,17 +1,16 @@
-from os import makedirs as makeDirectory
-from os.path import join as pathJoin
+import os
 
 from logging import Formatter, Logger, getLogger, ERROR, INFO, WARNING
 from logging.handlers import RotatingFileHandler
 
 LOG_DIR = "logs"
-makeDirectory(LOG_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 def create_logger(name: str, filename: str, level=INFO) -> Logger:
     logger = getLogger(name)
     logger.setLevel(level)
     if not logger.handlers:
-        log_path = pathJoin(LOG_DIR, filename)
+        log_path = os.path.join(LOG_DIR, filename)
         handler = RotatingFileHandler(log_path, maxBytes=1_000_000, backupCount=5)
         formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)

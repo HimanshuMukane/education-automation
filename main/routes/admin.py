@@ -1,7 +1,6 @@
-# ── main/admin.py ───────────────────────────────────────────────────────────────
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
+from flask import Blueprint, request, session, render_template, redirect, url_for, jsonify
 from main.models import Timetable, Teacher
-from main.utils import util_db_add, util_db_update, generate_password_hash, login_required, is_admin
+from main.utils import util_db_add, util_db_update, util_db_delete, generate_password_hash, login_required, is_admin
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -9,10 +8,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @login_required
 @is_admin(2)
 def dashboard():
-    user = session.get('user')
-    if not user or user.get('role') != 'admin' or user.get('level') != 1:
-        return redirect(url_for('index.login'))
-    teachers = Teacher.query.order_by(Teacher.id.desc()).all()
+    teachers = Teacher.query.all()
     return render_template('admin_dashboard.html', teachers=teachers)
 
 @admin_bp.route('/create-teacher', methods=['POST'])
@@ -24,7 +20,7 @@ def create_teacher():
     email = data.get('email','').strip().lower()
     password = data.get('password','')
     pay_per_lecture_raw = data.get('pay_per_lecture')
-
+    bankInfo = data.get('paymentDetails',{})
     # Basic validation
     if not name or not email or not password or pay_per_lecture_raw is None:
         return jsonify({'success': False, 'error': 'All fields (including pay_per_lecture) are required'}), 400
@@ -48,6 +44,7 @@ def create_teacher():
         email=email,
         password=hashed_pw,
         pay_per_lecture=pay_per_lecture,
+        bank_info=bankInfo
     )
     result = util_db_add(new_teacher)
     if not result.get('success'):
@@ -79,10 +76,9 @@ def modify_teacher():
     teacher_id = request.json.get('id')
     teacher = Teacher.query.get(teacher_id)
     if not teacher:
-        return jsonify({'success': False, 'error': 'Not authorized'}), 403
+        return jsonify({'success': False, 'error': 'Teacher not found'}), 404
 
     if request.method == 'DELETE':
-        # Option A: Soft-delete (mark inactive)
         teacher.is_active = False
         result = util_db_update()
         if not result.get('success'): 
@@ -95,7 +91,7 @@ def modify_teacher():
     email = data.get('email','').strip().lower()
     password = data.get('password')  # optional; only if they want to update password
     pay_raw = data.get('pay_per_lecture')  # ← new
-
+    bankInfo = data.get('paymentDetails',{})
     if name:
         teacher.name = name
     if email:
@@ -115,6 +111,11 @@ def modify_teacher():
 
     if password:
         teacher.password = generate_password_hash(password)
+    
+    if bankInfo:
+        print("here")
+        teacher.bank_info = bankInfo
+        print(teacher.bank_info)
 
     result = util_db_update()
     if not result.get("success"):
@@ -134,20 +135,18 @@ def modify_teacher():
         }
     }), 200
 
-
-
 @admin_bp.route('/timetables')
 @login_required
 @is_admin(1)
 def timetables():
-    entries = Timetable.query.order_by(Timetable.date.desc(), Timetable.start_time.asc()).all()
+    entries = Timetable.query.all()
     teachers = Teacher.query.filter_by(is_active=True).all()
     return render_template('timetable.html', entries=entries, teachers=teachers)
 
 @admin_bp.route('/timetable/create', methods=['POST'])
 @login_required
 @is_admin(1)
-def create_entry():
+def create_timetable():
     data = request.get_json()
     try:
         date = data['date']
@@ -170,10 +169,10 @@ def create_entry():
     result = util_db_add(new_entry)
     if not result.get('success'):
         return jsonify({'success': False, 'error': 'Creation failed'}), 500
-
+    resp = new_entry.to_dict()
     return jsonify({
         'success': True,
-        'entry': new_entry.to_dict()
+        'data': resp
     }), 200
 
 @admin_bp.route('/timetable/modify', methods=['PUT', 'DELETE'])
@@ -187,8 +186,7 @@ def modify_entry():
 
     if request.method == 'DELETE':
         # Soft delete flag
-        entry.is_proxy = True
-        result = util_db_update()
+        result = util_db_delete(entry)
         if not result.get('success'):
             return jsonify({'success': False, 'error': 'Deletion failed'}), 500
         return jsonify({'success': True}), 200
@@ -203,8 +201,8 @@ def modify_entry():
         entry.teacher_id = int(data['teacher_id'])
     except (KeyError, ValueError):
         return jsonify({'success': False, 'error': 'Invalid data'}), 400
-
     result = util_db_update()
     if not result.get('success'):
         return jsonify({'success': False, 'error': 'Update failed'}), 500
-    return jsonify({'success': True, 'entry': entry.to_dict()}), 200
+    resp = {}
+    return jsonify({'success': True, 'entry': resp}), 200
