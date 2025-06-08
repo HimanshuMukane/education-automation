@@ -160,3 +160,34 @@ def generate_invoice():
     return send_file(pdf_path,
                      as_attachment=True,
                      download_name=f"invoice_{teacher.id}_{year}{month}.pdf")
+
+
+
+
+@teacher_bp.route('/invoice_template')
+def invoice_template():
+    teacher = Teacher.query.get(1)
+    # POST
+    month = "01"  # '01'-'12'
+    year = "2025"    # '2025', etc
+    # fetch all marked lectures for this teacher in selected month
+    entries = Timetable.query.filter(
+        Timetable.is_present == True,
+        db.extract('month', Timetable.date) == int(month),
+        db.extract('year', Timetable.date) == int(year),
+        or_(
+            Timetable.teacher_id == 1,
+            Timetable.proxy_id == 1
+        )
+    ).order_by(Timetable.date).all()
+
+    total_lectures = len(entries)
+    total_amount = total_lectures * teacher.pay_per_lecture
+    return render_template('invoice_template.html',
+        teacher=teacher,
+        entries=entries,
+        total_lectures=total_lectures,
+        total_amount=total_amount,
+        month=month,
+        year=year
+    )

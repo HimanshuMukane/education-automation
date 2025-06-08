@@ -38,3 +38,4 @@ def signup():
 @index_bp.route('/fee-entry')
 def fee_entry():
     return render_template('fee_entry.html')
+
