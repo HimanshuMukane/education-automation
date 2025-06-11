@@ -55,8 +55,12 @@ class Teacher(BaseModel):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password = db.Column(db.String(255), nullable=False)
-    bank_info = db.Column(db.JSON, nullable=True)
+    role = db.Column(db.String(20), nullable=False)
+    address = db.Column(db.String(100), nullable=False)
+    mobile = db.Column(db.String(10), nullable=False)
+    pan_number = db.Column(db.String(11), nullable=False)
     pay_per_lecture = db.Column(db.Float, nullable=False)
+    bank_info = db.Column(db.JSON, nullable=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
 
     lectures = db.relationship('Timetable', foreign_keys='Timetable.teacher_id', backref='teacher', lazy='dynamic')

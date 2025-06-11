@@ -89,10 +89,26 @@
                         </div>
                         <div class="card mt-4">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <span>Payment Details</span>
+                                <span>Additional Details</span>
                             </div>
                             <div class="card-body">
                                 <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="mobileNumber" class="form-label">Mobile Number</label>
+                                        <input type="number" class="form-control" id="mobileNumber" placeholder="Mobile Number" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="address" class="form-label">Address</label>
+                                        <input type="text" class="form-control" id="address" placeholder="Address" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="role" class="form-label">Role</label>
+                                        <input type="text" class="form-control" id="role" placeholder="Role" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="panNumber" class="form-label">PAN Number</label>
+                                        <input type="text" class="form-control" id="panNumber" placeholder="PAN Number" />
+                                    </div>
                                     <div class="col-md-6">
                                         <label for="bankName" class="form-label">Bank Name</label>
                                         <input type="text" class="form-control" id="bankName"
@@ -157,24 +173,43 @@
                                 <tr data-teacher-id="{{ teacher.id }}" data-teacher-name="{{ teacher.name }}"
                                     data-teacher-email="{{ teacher.email }}"
                                     data-teacher-pay="{{ teacher.pay_per_lecture }}"
+                                    data-teacher-address="{{teacher.address }}"
+                                    data-teacher-role="{{teacher.role }}"
+                                    
+                                    data-mobile-number="{{teacher.mobile }}"
+                                    data-pan-number="{{teacher.pan_number }}"
                                     data-is-active="{{teacher.is_active|lower }}"
+                                    
                                     data-bank-name="{{teacher.bank_info.bankName }}"
+                                    data-bank-address="{{teacher.bank_info.bankAddress }}"
                                     data-account-number="{{teacher.bank_info.AccountNumber }}"
-                                    data-ifsc-code="{{teacher.bank_info.ifscCode }}"
-                                    data-bank-address="{{teacher.bank_info.bankAddress }}">
+                                    data-ifsc-code="{{teacher.bank_info.ifscCode }}">
                                     <td>{{ teacher.id }}</td>
                                     <td class="teacher-name">{{ teacher.name }}</td>
-                                    <td class="teacher-email">{{ teacher.email }}</td>
+                                    <td class="teacher-role">{{ teacher.role }}</td>
+                                    <td class="communication">
+                                        <span class="teacher-email">
+                                            Email: {{ teacher.email }}</span>
+                                        <br>
+                                        <span class="teacher-mobile">
+                                            Mobile: {{ teacher.mobile }}</span>
+                                        <br>
+                                        <span class="teacher-address">
+                                            Address: {{ teacher.address }}</span>
+                                    </td>
                                     <td class="teacher-pay">₹{{ teacher.pay_per_lecture|int }}</td>
                                     <td class="teacher-payment-details">
-                                        <span class="bank-name">Bank Name:{{ teacher.bank_info.bankName }}</span> <br>
+                                        <span class="bank-name">Bank Name: {{ teacher.bank_info.bankName }}</span> <br>
                                         <span class="bankAddress">Bank
-                                            Address:{{ teacher.bank_info.bankAddress }}</span>
+                                            Address: {{ teacher.bank_info.bankAddress }}</span>
                                         <br>
                                         <span class="account-number">Account
-                                            Number:{{ teacher.bank_info.AccountNumber }}</span>
+                                            Number: {{ teacher.bank_info.AccountNumber }}</span>
                                         <br>
-                                        <span class="ifsc-code">IFSC:{{ teacher.bank_info.ifscCode }}</span> <br>
+                                        <span class="pan-number">PAN
+                                            Number: {{ teacher.pan_number }}</span>
+                                        <br>
+                                        <span class="ifsc-code">IFSC: {{ teacher.bank_info.ifscCode }}</span> <br>
                                     </td>
                                     <td class="teacher-isActive">
                                         {% if teacher.is_active %}
@@ -247,7 +282,7 @@
                     </div>
                     <div class="card mt-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <span>Payment Details</span>
+                            <span>Additional Details</span>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
@@ -268,6 +303,22 @@
                                 <div class="col-md-6">
                                     <label for="editIfscCode" class="form-label">IFSC Code</label>
                                     <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editMobileNumber" class="form-label">Mobile Number*</label>
+                                    <input type="text" class="form-control" id="editMobileNumber" placeholder="IFSCS" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editAddress" class="form-label">Address*</label>
+                                    <input type="text" class="form-control" id="editAddress" placeholder="Address" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editRole" class="form-label">Role*</label>
+                                    <input type="text" class="form-control" id="editRole" placeholder="Role" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editPanNumber" class="form-label">PAN Number*</label>
+                                    <input type="text" class="form-control" id="editPanNumber" placeholder="PAN Number" />
                                 </div>
                             </div>
                         </div>
@@ -367,15 +418,19 @@
                 const name = document.getElementById("teacherName").value.trim();
                 const email = document.getElementById("teacherEmail").value.trim().toLowerCase();
                 const password = document.getElementById("teacherPassword").value;
+                const mobile = document.getElementById("mobileNumber").value;
+                const address = document.getElementById("address").value;
+                const role = document.getElementById("role").value;
+                const panNumber = document.getElementById("panNumber").value;
                 const payRaw = document.getElementById("teacherPay").value;
                 const paymentDetails = {}
                 paymentDetails['bankName'] = document.getElementById("bankName").value;
                 paymentDetails['AccountNumber'] = document.getElementById("accountNumber").value;
                 paymentDetails['ifscCode'] = document.getElementById("ifscCode").value;
                 paymentDetails['bankAddress'] = document.getElementById("bankAddress").value;
-                if (!name || !email || !password || !payRaw) {
+                if (!name || !email || !password || !payRaw || !mobile || !address || !role || !panNumber) {
                     showCreateFeedback(
-                        "All fields (Name, Email, Password, Pay per Lecture) are required.",
+                        "All fields (Name, Email, Mobile, Password, address, role, panNumber, Pay per Lecture) are required.",
                         false
                     );
                     return;
@@ -396,6 +451,10 @@
                     body: JSON.stringify({
                         name,
                         email,
+                        mobile,
+                        address,
+                        role,
+                        panNumber,
                         password,
                         pay_per_lecture,
                         paymentDetails
@@ -450,6 +509,11 @@
             tr.setAttribute("data-teacher-name", teacher.name);
             tr.setAttribute("data-teacher-email", teacher.email);
             tr.setAttribute("data-teacher-pay", teacher.pay_per_lecture);
+            tr.setAttribute("data-teacher-address", teacher.address);
+            tr.setAttribute("data-teacher-role", teacher.role);
+
+            tr.setAttribute("data-mobile-number", teacher.mobile);
+            tr.setAttribute("data-pan-number", teacher.pan_number);
             tr.setAttribute("data-is-active", teacher.is_active);
 
             tr.setAttribute("data-bank-name", teacher.bank_info.bankName);
@@ -459,13 +523,19 @@
 
             tr.innerHTML = `<td>${teacher.id}</td>
 <td class="teacher-name">${teacher.name}</td>
-<td class="teacher-email">${teacher.email}</td>
-<td class="teacher-pay">₹ ${teacher.pay_per_lecture}</td>
+<td class="teacher-role">${teacher.role}</td>
+<td class="communication">
+    <span class="teacher-email">Email: ${teacher.email}</span><br>
+    <span class="teacher-mobile">Mobile: ${teacher.mobile}</span><br>
+    <span class="teacher-address">Account Number: ${teacher.address}</span><br>
+</td>
+    <td class="teacher-pay">₹ ${teacher.pay_per_lecture}</td>
 <td class="teacher-payment-details">
-    <span class="bank-name">Bank Name:${teacher.bank_info.bankName}</span><br>
-    <span class="bankAddress">Bank Address:${teacher.bank_info.bankAddress}</span><br>
-    <span class="account-number">Account Number:${teacher.bank_info.AccountNumber}</span><br>
-    <span class="ifsc-code">IFSC:${teacher.bank_info.ifscCode}</span><br>
+    <span class="bank-name">Bank Name: ${teacher.bank_info.bankName}</span><br>
+    <span class="bankAddress">Bank Address: ${teacher.bank_info.bankAddress}</span><br>
+    <span class="account-number">Account Number: ${teacher.bank_info.AccountNumber}</span><br>
+    <span class="pan-number">PAN Number: ${teacher.pan_length}</span><br>    
+    <span class="ifsc-code">IFSC: ${teacher.bank_info.ifscCode}</span><br>
 </td>
 <td class="teacher-isActive">${teacher.is_active ? "Active" : "Inactive"}</td>
 <td class="text-end">
@@ -493,28 +563,37 @@
                 const tName = row.getAttribute("data-teacher-name");
                 const tEmail = row.getAttribute("data-teacher-email");
                 const tPay = row.getAttribute("data-teacher-pay");
+                const adress = row.getAttribute("data-teacher-adress");
+                const role = row.getAttribute("data-teacher-role");
 
+                const mobileNumber = row.getAttribute("data-mobile-number");
+                const panNumber = row.getAttribute("data-pan-number");
+                const isActive = row.getAttribute("data-is-active");
+                
                 const bankName = row.getAttribute("data-bank-name");
+                const bankAddress = row.getAttribute("data-bank-address");
                 const AccountNumber = row.getAttribute("data-account-number");
                 const ifscCode = row.getAttribute("data-ifsc-code");
-                const bankAddress = row.getAttribute("data-bank-address");
-                const isActive = row.getAttribute("data-is-active");
-                openEditModal(teacherId, tName, tEmail, tPay, bankName, AccountNumber, ifscCode, bankAddress, isActive);
+                openEditModal(teacherId, tName, tEmail, role, mobileNumber, adress, panNumber,  tPay, bankName, AccountNumber, ifscCode, bankAddress, isActive);
             }
         });
 
         // ── EDIT MODAL logic ───────────────────────────────────────────────────────
         let editModal = new bootstrap.Modal(document.getElementById("editTeacherModal"));
-        function openEditModal(id, name, email, pay, bankName, AccountNumber, ifscCode, bankAddress, isActive) {
+        function openEditModal(id, name, email, role, mobileNumber, adress, panNumber, pay, bankName, AccountNumber, ifscCode, bankAddress, isActive) {
             document.getElementById("editTeacherId").value = id;
             document.getElementById("editTeacherName").value = name;
             document.getElementById("editTeacherEmail").value = email;
             document.getElementById("editTeacherPay").value = pay;
+            document.getElementById("editMobileNumber").value = mobileNumber;
+            document.getElementById("editTeacherStatus").value = isActive === "true" ? "true" : "false";
             document.getElementById("editBankName").value = bankName;
             document.getElementById("editAccountNumber").value = AccountNumber;
             document.getElementById("editIfscCode").value = ifscCode;
+            document.getElementById("editAddress").value = adress;
+            document.getElementById("editRole").value = role;
+            document.getElementById("editPanNumber").value = panNumber;
             document.getElementById("editBankAddress").value = bankAddress;
-            document.getElementById("editTeacherStatus").value = isActive === "true" ? "true" : "false";
             document.getElementById("editTeacherPassword").value = "";
             document.getElementById("editFeedback").innerHTML = ""; // clear previous feedback
             editModal.show();
@@ -532,15 +611,19 @@
             const newAccountNumber = document.getElementById("editAccountNumber").value.trim();
             const newIfscCode = document.getElementById("editIfscCode").value.trim();
             const newbankAddress = document.getElementById("editBankAddress").value.trim();
-            const isActive = document.getElementById("editTeacherStatus").value==="true"?true:false;
+            const newMobileNumber = document.getElementById("editMobileNumber").value.trim();
+            const newPanNumber = document.getElementById("editPanNumber").value.trim();
+            const newRole = document.getElementById("editRole").value.trim();
+            const newAddress = document.getElementById("editAddress").value.trim();
+            const isActive = document.getElementById("editTeacherStatus").value === "true" ? true : false;
             const paymentDetails = {}
             paymentDetails['bankName'] = newBankName;
             paymentDetails['AccountNumber'] = newAccountNumber;
             paymentDetails['ifscCode'] = newIfscCode;
             paymentDetails['bankAddress'] = newbankAddress;
 
-            if (!newName || !newEmail || !newPayRaw) {
-                showEditFeedback("Name, Email, and Pay per Lecture are required.", false);
+            if (!newName || !newEmail || !newPayRaw || !newMobileNumber) {
+                showEditFeedback("Name, Email, Mobile and Pay per Lecture are required.", false);
                 return;
             }
 
@@ -549,7 +632,7 @@
                 showEditFeedback("Please enter a valid, non-negative number for Pay per Lecture.", false);
                 return;
             }
-            let payload = { name: newName, email: newEmail, pay_per_lecture: newPay, id: id, paymentDetails: paymentDetails, is_active: isActive };
+            let payload = { name: newName, pan_number: newPanNumber, role: newRole, address: newAddress, email: newEmail, mobile: newMobileNumber, pay_per_lecture: newPay, id: id, paymentDetails: paymentDetails, is_active: isActive };
             if (newPwd.trim()) {
                 payload.password = newPwd;
             }
@@ -573,20 +656,32 @@
                         row.setAttribute("data-teacher-name", body.teacher.name);
                         row.setAttribute("data-teacher-email", body.teacher.email);
                         row.setAttribute("data-teacher-pay", body.teacher.pay_per_lecture);
+                        row.setAttribute("data-teacher-address", body.teacher.address);
+                        row.setAttribute("data-teacher-role", body.teacher.role);
+
+                        row.setAttribute("data-mobile-number", body.teacher.mobile);
+                        row.setAttribute("data-pan-number", body.teacher.pan_number);
                         row.setAttribute("data-is-active", body.teacher.is_active);
+
                         row.setAttribute("data-bank-name", body.teacher.bank_info.bankName);
+                        row.setAttribute("data-bank-address", body.teacher.bank_info.bankAddress);
                         row.setAttribute("data-account-number", body.teacher.bank_info.AccountNumber);
                         row.setAttribute("data-ifsc-code", body.teacher.bank_info.ifscCode);
-                        row.setAttribute("data-bank-address", body.teacher.bank_info.bankAddress);
 
                         row.querySelector(".teacher-name").textContent = body.teacher.name;
+                        row.querySelector(".teacher-role").textContent = body.teacher.role;
+
                         row.querySelector(".teacher-email").textContent = body.teacher.email;
-                        row.querySelector(".teacher-isActive").textContent = body.teacher.is_active ? "Active" : "Inactive";
+                        row.querySelector(".teacher-mobile").textContent = body.teacher.mobile;
+                        row.querySelector(".teacher-address").textContent = body.teacher.address;
+                        
                         row.querySelector(".teacher-pay").textContent = "₹" + body.teacher.pay_per_lecture;
                         row.querySelector(".bank-name").textContent = "Bank Name: " + body.teacher.bank_info.bankName;
                         row.querySelector(".bankAddress").textContent = "Bank Address: " + body.teacher.bank_info.bankAddress;
-                        row.querySelector(".ifsc-code").textContent = "IFSC Code: " + body.teacher.bank_info.ifscCode;
                         row.querySelector(".account-number").textContent = "Account Number: " + body.teacher.bank_info.AccountNumber;
+                        row.querySelector(".pan-number").textContent = "PAN Number: " + body.teacher.bank_info.AccountNumber;
+                        row.querySelector(".ifsc-code").textContent = "IFSC Code: " + body.teacher.bank_info.ifscCode;
+                        row.querySelector(".teacher-isActive").textContent = body.teacher.is_active ? "Active" : "Inactive";
                         // NOT GETTING FLOAT VALUE AFTER UPDATE
                         setTimeout(() => {
                             editModal.hide();
@@ -668,6 +763,27 @@
                 }, 200);
             }
         }
+    </script>
+    <script>
+        // This function validates the length of a specific input field
+        function validateInputLength(inputId, requiredLength) {
+            const inputElement = document.getElementById(inputId);
+            if (!inputElement) return;
+
+            inputElement.addEventListener('input', () => {
+                const inputLength = inputElement.value.length;
+                if (inputLength > requiredLength) {
+                    inputElement.value = inputElement.value.slice(0, requiredLength);
+                }
+            });
+        }
+
+        // Call the function for each input field
+        window.onload = () => {
+            validateInputLength('phone', 10);
+            validateInputLength('ifsc', 11);
+            validateInputLength('account', 18);
+        };
     </script>
 </body>
 

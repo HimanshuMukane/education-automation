@@ -111,20 +111,41 @@ def create_teacher():
     name = data.get('name','').strip()
     email = data.get('email','').strip().lower()
     password = data.get('password','')
+    address = data.get('address','').strip().lower()
+    role = data.get('role','').strip().lower()
+    mobile = data.get('mobile','').strip().lower()
+    pan_number = data.get('pan_number','').strip().upper()
     pay_per_lecture_raw = data.get('pay_per_lecture')
     bankInfo = data.get('paymentDetails',{})
-    # Basic validation
-    if not name or not email or not password or pay_per_lecture_raw is None:
-        return jsonify({'success': False, 'error': 'All fields (including pay_per_lecture) are required'}), 400
 
-    # Convert pay_per_lecture to float
+    if not name or not email or not password or not role or not address or not mobile or not pan_number or pay_per_lecture is not None:
+        return jsonify({'success': False, 'error': 'All fields (including name, email, password, role, address, mobile, pan_number, pay_per_lecture) are required'}), 400
+
     try:
         pay_per_lecture = float(pay_per_lecture_raw)
+        if pay_per_lecture < 0:
+            return jsonify({'success': False, 'error': 'pay_per_lecture cannot be negative'}), 400
     except (TypeError, ValueError):
         return jsonify({'success': False, 'error': 'pay_per_lecture must be a number'}), 400
 
-    if pay_per_lecture < 0:
-        return jsonify({'success': False, 'error': 'pay_per_lecture cannot be negative'}), 400
+    try:
+        int(mobile)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'error': 'Mobile must be a number'}), 400
+
+    if bankInfo != {}:
+        if bankInfo.get('ifscCode') is not None and len(bankInfo.get('ifscCode')) != 11:
+            return jsonify({'success': False, 'error': 'IFSC must be of 11 characters'}), 400
+        if bankInfo.get('AccountNumber') is not None and len(bankInfo.get('AccountNumber')) > 18:
+            return jsonify({'success': False, 'error': 'Invalid Account Number'}), 400
+        if bankInfo.get('AccountNumber') is not None:
+            try:
+                int(bankInfo.get('AccountNumber'))
+            except (TypeError, ValueError):
+                return jsonify({'success': False, 'error': 'Account Number must be a number'}), 400     
+
+    if len(pan_number) > 10:
+        return jsonify({'success': False, 'error': 'PAN Card Number Length Must be 10 Digits'}), 400
 
     # Check for duplicate Teacher email
     if Teacher.query.filter_by(email=email).first():
@@ -135,6 +156,10 @@ def create_teacher():
         name=name,
         email=email,
         password=hashed_pw,
+        address=address,
+        role=role,
+        mobile=mobile,
+        pan_number=pan_number,
         pay_per_lecture=pay_per_lecture,
         bank_info=bankInfo
     )
@@ -171,6 +196,10 @@ def modify_teacher():
     name = data.get('name','').strip()
     email = data.get('email','').strip().lower()
     password = data.get('password')  # optional; only if they want to update password
+    address = data.get('address','').strip().lower()
+    role = data.get('role','').strip().lower()
+    mobile = data.get('mobile','').strip().lower()
+    pan_number = data.get('pan_number','').strip().upper()
     pay_raw = data.get('pay_per_lecture')  # ← new
     is_active = data.get('is_active',None)
     bankInfo = data.get('paymentDetails',{})
@@ -178,11 +207,27 @@ def modify_teacher():
     if name:
         teacher.name = name
     if email:
-        # check duplicate:
         existing = Teacher.query.filter(Teacher.email == email, Teacher.id != teacher_id).first()
         if existing:
             return jsonify({'success': False, 'error': 'Email already in use'}), 400
         teacher.email = email
+    if password:
+        teacher.password = generate_password_hash(password)
+    if address:
+        teacher.address=address
+    if role:
+        teacher.role = role
+    if mobile:
+        try:
+            int(mobile)
+            teacher.mobile = mobile
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'Mobile must be a number'}), 400
+    if pan_number:
+        if len(pan_number) > 10:
+            return jsonify({'success': False, 'error': 'PAN Card Number Length Must be 10 Digits'}), 400
+        teacher.pan_number = pan_number
+        
     if pay_raw is not None:
         try:
             pay_val = float(pay_raw)
@@ -195,11 +240,18 @@ def modify_teacher():
     if is_active is not None:
         teacher.is_active = is_active
 
-    if password:
-        teacher.password = generate_password_hash(password)
-    
     if bankInfo:
-        teacher.bank_info = bankInfo
+        if bankInfo != {}:
+            if bankInfo.get('ifscCode') is not None and len(bankInfo.get('ifscCode')) != 11:
+                return jsonify({'success': False, 'error': 'IFSC must be of 11 characters'}), 400
+            if bankInfo.get('AccountNumber') is not None and len(bankInfo.get('AccountNumber')) > 18:
+                return jsonify({'success': False, 'error': 'Invalid Account Number'}), 400
+            if bankInfo.get('AccountNumber') is not None:
+                try:
+                    int(bankInfo.get('AccountNumber'))
+                except (TypeError, ValueError):
+                    return jsonify({'success': False, 'error': 'Account Number must be a number'}), 400     
+            teacher.bank_info = bankInfo
 
     result = util_db_update()
     if not result.get("success"):
