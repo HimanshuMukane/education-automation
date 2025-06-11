@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, session, url_for, current_app, make_response, redirect, flash, send_file
-from main.models import Student, StudentInvoice, Admin, Sales
+from main.models import Student, StudentInvoice, Admin
 from main.utils import util_db_add, util_db_update, util_db_delete, login_required, is_admin
 from datetime import date, datetime
 import pdfkit
