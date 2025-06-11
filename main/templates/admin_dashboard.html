@@ -20,7 +20,7 @@
     <!-- Mobile Navigation -->
     <nav class="navbar navbar-dark bg-dark d-md-none fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Admin Dashboard</a>
+            <a class="navbar-brand" href="{{ url_for('admin.dashboard' ) }}">Admin Dashboard</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -61,30 +61,25 @@
                     <form id="createTeacherForm">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="teacherName" class="form-label">Name*</label>
-                                <input type="text" class="form-control" id="teacherName" placeholder="Teacher full name"
-                                    required />
+                                <label title="Compulsory Field" for="teacherName" class="form-label">Name*</label>
+                                <input type="text" class="form-control" id="teacherName" placeholder="Teacher full name" required />
                             </div>
                             <div class="col-md-6">
-                                <label for="teacherEmail" class="form-label">Email*</label>
-                                <input type="email" class="form-control" id="teacherEmail"
-                                    placeholder="teacher@example.com" required />
+                                <label title="Compulsory Field" for="teacherEmail" class="form-label">Email*</label>
+                                <input type="email" class="form-control" id="teacherEmail" placeholder="teacher@example.com" required />
                             </div>
                             <div class="col-md-6">
-                                <label for="teacherPassword" class="form-label">Password*</label>
+                                <label title="Compulsory Field" for="teacherPassword" class="form-label">Password*</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="teacherPassword"
-                                        placeholder="Enter a password" required />
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePassword('teacherPassword')">
+                                    <input type="password" class="form-control" id="teacherPassword" placeholder="Enter a password" required />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('teacherPassword')">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="teacherPay" class="form-label">Pay per Lecture (₹)*</label>
-                                <input type="number" step="0.01" class="form-control" id="teacherPay"
-                                    placeholder="e.g. 250.00" required />
+                                <label title="Compulsory Field" for="teacherPay" class="form-label">Pay per Lecture (₹)*</label>
+                                <input type="number" step="0.01" class="form-control" id="teacherPay" placeholder="e.g. 250.00" required />
                             </div>
                         </div>
                         <div class="card mt-4">
@@ -94,35 +89,36 @@
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label for="mobileNumber" class="form-label">Mobile Number</label>
+                                        <label title="Compulsory Field" for="mobileNumber" class="form-label">Mobile Number*</label>
                                         <input type="number" class="form-control" id="mobileNumber" placeholder="Mobile Number" />
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="address" class="form-label">Address</label>
+                                        <label title="Compulsory Field" for="address" class="form-label">Address*</label>
                                         <input type="text" class="form-control" id="address" placeholder="Address" />
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="role" class="form-label">Role</label>
+                                        <label title="Compulsory Field" for="role" class="form-label">Role*</label>
                                         <input type="text" class="form-control" id="role" placeholder="Role" />
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="panNumber" class="form-label">PAN Number</label>
+                                        <label title="Compulsory Field" for="panNumber" class="form-label">PAN Number*</label>
                                         <input type="text" class="form-control" id="panNumber" placeholder="PAN Number" />
                                     </div>
                                     <div class="col-md-6">
                                         <label for="bankName" class="form-label">Bank Name</label>
-                                        <input type="text" class="form-control" id="bankName"
-                                            placeholder="Name of the Bank" />
+                                        <input type="text" class="form-control" id="bankName" placeholder="Name of the Bank" />
                                     </div>
                                     <div class="col-md-6">
                                         <label for="bankAddress" class="form-label">Bank Address : </label>
-                                        <input type="text" class="form-control" id="bankAddress"
-                                            placeholder="Bank Address" />
+                                        <input type="text" class="form-control" id="bankAddress" placeholder="Bank Address" />
                                     </div>
                                     <div class="col-md-6">
+                                        <label for="bankAddress" class="form-label">Bank Address : </label>
+                                        <input type="text" class="form-control" id="bankAddress" placeholder="Bank Address" />
+                                    </div>                                    
+                                    <div class="col-md-6">
                                         <label for="accountNumber" class="form-label">Account Number</label>
-                                        <input type="number" class="form-control" id="accountNumber"
-                                            placeholder="eg. 6980000XXXX" />
+                                        <input type="number" class="form-control" id="accountNumber" placeholder="eg. 6980000XXXX" />
                                     </div>
                                     <div class="col-md-6">
                                         <label for="ifscCode" class="form-label">IFSC Code</label>
@@ -161,7 +157,8 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Communication</th>
                                     <th>Pay/Lecture</th>
                                     <th>Payment Details</th>
                                     <th>Is Active</th>
@@ -250,16 +247,33 @@
                         <div id="editFeedback" class="mb-2"></div>
                         <input type="hidden" id="editTeacherId" />
                         <div class="mb-3">
-                            <label for="editTeacherName" class="form-label">Name</label>
+                            <label for="editTeacherName" class="form-label">Name*</label>
                             <input type="text" class="form-control" id="editTeacherName" required />
                         </div>
                         <div class="mb-3">
-                            <label for="editTeacherEmail" class="form-label">Email</label>
+                            <label for="editTeacherEmail" class="form-label">Email*</label>
                             <input type="email" class="form-control" id="editTeacherEmail" required />
                         </div>
+                        <div class="col-md-6">
+                            <label title="Compulsory Field" for="editRole" class="form-label">Role*</label>
+                            <input type="text" class="form-control" id="editRole" placeholder="Role" />
+                        </div>
                         <div class="mb-3">
-                            <label for="editTeacherPay" class="form-label">Pay per Lecture (₹)</label>
+                            <label for="editTeacherPay" class="form-label">Pay per Lecture (₹)*</label>
                             <input type="number" step="0.01" class="form-control" id="editTeacherPay" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label title="Compulsory Field" for="editMobileNumber" class="form-label">Mobile Number*</label>
+                            <input type="text" class="form-control" id="editMobileNumber" placeholder="IFSCS" />
+                        </div>
+                        <div class="col-md-6">
+                            <label title="Compulsory Field" for="editAddress" class="form-label">Address*</label>
+                            <input type="text" class="form-control" id="editAddress" placeholder="Address" />
+                        </div>
+    
+                        <div class="col-md-6">
+                            <label title="Compulsory Field" for="editPanNumber" class="form-label">PAN Number*</label>
+                            <input type="text" class="form-control" id="editPanNumber" placeholder="PAN Number" />
                         </div>
                         <div class="mb-3">
                             <label for="editTeacherPassword" class="form-label">New Password</label>
@@ -303,22 +317,6 @@
                                 <div class="col-md-6">
                                     <label for="editIfscCode" class="form-label">IFSC Code</label>
                                     <input type="text" class="form-control" id="editIfscCode" placeholder="IFSCS" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editMobileNumber" class="form-label">Mobile Number*</label>
-                                    <input type="text" class="form-control" id="editMobileNumber" placeholder="IFSCS" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editAddress" class="form-label">Address*</label>
-                                    <input type="text" class="form-control" id="editAddress" placeholder="Address" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editRole" class="form-label">Role*</label>
-                                    <input type="text" class="form-control" id="editRole" placeholder="Role" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="editPanNumber" class="form-label">PAN Number*</label>
-                                    <input type="text" class="form-control" id="editPanNumber" placeholder="PAN Number" />
                                 </div>
                             </div>
                         </div>
@@ -421,7 +419,7 @@
                 const mobile = document.getElementById("mobileNumber").value;
                 const address = document.getElementById("address").value;
                 const role = document.getElementById("role").value;
-                const panNumber = document.getElementById("panNumber").value;
+                const pan_number = document.getElementById("panNumber").value;
                 const payRaw = document.getElementById("teacherPay").value;
                 const paymentDetails = {}
                 paymentDetails['bankName'] = document.getElementById("bankName").value;
@@ -454,7 +452,7 @@
                         mobile,
                         address,
                         role,
-                        panNumber,
+                        pan_number,
                         password,
                         pay_per_lecture,
                         paymentDetails
@@ -563,7 +561,7 @@
                 const tName = row.getAttribute("data-teacher-name");
                 const tEmail = row.getAttribute("data-teacher-email");
                 const tPay = row.getAttribute("data-teacher-pay");
-                const adress = row.getAttribute("data-teacher-adress");
+                const address = row.getAttribute("data-teacher-address");
                 const role = row.getAttribute("data-teacher-role");
 
                 const mobileNumber = row.getAttribute("data-mobile-number");
@@ -574,13 +572,13 @@
                 const bankAddress = row.getAttribute("data-bank-address");
                 const AccountNumber = row.getAttribute("data-account-number");
                 const ifscCode = row.getAttribute("data-ifsc-code");
-                openEditModal(teacherId, tName, tEmail, role, mobileNumber, adress, panNumber,  tPay, bankName, AccountNumber, ifscCode, bankAddress, isActive);
+                openEditModal(teacherId, tName, tEmail, role, mobileNumber, address, panNumber,  tPay, bankName, AccountNumber, ifscCode, bankAddress, isActive);
             }
         });
 
         // ── EDIT MODAL logic ───────────────────────────────────────────────────────
         let editModal = new bootstrap.Modal(document.getElementById("editTeacherModal"));
-        function openEditModal(id, name, email, role, mobileNumber, adress, panNumber, pay, bankName, AccountNumber, ifscCode, bankAddress, isActive) {
+        function openEditModal(id, name, email, role, mobileNumber, address, panNumber, pay, bankName, AccountNumber, ifscCode, bankAddress, isActive) {
             document.getElementById("editTeacherId").value = id;
             document.getElementById("editTeacherName").value = name;
             document.getElementById("editTeacherEmail").value = email;
@@ -590,7 +588,7 @@
             document.getElementById("editBankName").value = bankName;
             document.getElementById("editAccountNumber").value = AccountNumber;
             document.getElementById("editIfscCode").value = ifscCode;
-            document.getElementById("editAddress").value = adress;
+            document.getElementById("editAddress").value = address;
             document.getElementById("editRole").value = role;
             document.getElementById("editPanNumber").value = panNumber;
             document.getElementById("editBankAddress").value = bankAddress;
@@ -679,7 +677,7 @@
                         row.querySelector(".bank-name").textContent = "Bank Name: " + body.teacher.bank_info.bankName;
                         row.querySelector(".bankAddress").textContent = "Bank Address: " + body.teacher.bank_info.bankAddress;
                         row.querySelector(".account-number").textContent = "Account Number: " + body.teacher.bank_info.AccountNumber;
-                        row.querySelector(".pan-number").textContent = "PAN Number: " + body.teacher.bank_info.AccountNumber;
+                        row.querySelector(".pan-number").textContent = "PAN Number: " + body.teacher.pan_number;
                         row.querySelector(".ifsc-code").textContent = "IFSC Code: " + body.teacher.bank_info.ifscCode;
                         row.querySelector(".teacher-isActive").textContent = body.teacher.is_active ? "Active" : "Inactive";
                         // NOT GETTING FLOAT VALUE AFTER UPDATE

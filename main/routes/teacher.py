@@ -134,7 +134,7 @@ def dashboard():
     if not user or user.get('role') != 'teacher':
         return redirect(url_for('index.login'))
 
-    return render_template('teacher_dashboard.html', teacher_name=user.get('name'))
+    return render_template('mark_attendance.html', teacher_name=user.get('name'))
 
 @teacher_bp.route('/invoice', methods=['GET', 'POST'])
 @login_required

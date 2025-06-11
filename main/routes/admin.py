@@ -84,7 +84,6 @@ def modify_sales():
             return jsonify({'success': False, 'error': 'Email already in use'}), 400
         admin.email = email
     if is_active is not None:
-        print(admin.is_active)
         admin.is_active = is_active
 
     if password:
@@ -118,8 +117,8 @@ def create_teacher():
     pay_per_lecture_raw = data.get('pay_per_lecture')
     bankInfo = data.get('paymentDetails',{})
 
-    if not name or not email or not password or not role or not address or not mobile or not pan_number or pay_per_lecture is not None:
-        return jsonify({'success': False, 'error': 'All fields (including name, email, password, role, address, mobile, pan_number, pay_per_lecture) are required'}), 400
+    if not name or not email or not password or not role or not address or not mobile or not pan_number:
+        return jsonify({'success': False, 'error': 'All fields (including name, email, password, role, address, mobile, pan_number) are required'}), 400
 
     try:
         pay_per_lecture = float(pay_per_lecture_raw)
@@ -133,7 +132,7 @@ def create_teacher():
     except (TypeError, ValueError):
         return jsonify({'success': False, 'error': 'Mobile must be a number'}), 400
 
-    if bankInfo != {}:
+    if any(value for value in bankInfo.values()):
         if bankInfo.get('ifscCode') is not None and len(bankInfo.get('ifscCode')) != 11:
             return jsonify({'success': False, 'error': 'IFSC must be of 11 characters'}), 400
         if bankInfo.get('AccountNumber') is not None and len(bankInfo.get('AccountNumber')) > 18:
@@ -203,7 +202,6 @@ def modify_teacher():
     pay_raw = data.get('pay_per_lecture')  # ← new
     is_active = data.get('is_active',None)
     bankInfo = data.get('paymentDetails',{})
-
     if name:
         teacher.name = name
     if email:
@@ -224,7 +222,7 @@ def modify_teacher():
         except (TypeError, ValueError):
             return jsonify({'success': False, 'error': 'Mobile must be a number'}), 400
     if pan_number:
-        if len(pan_number) > 10:
+        if len(pan_number) != 10:
             return jsonify({'success': False, 'error': 'PAN Card Number Length Must be 10 Digits'}), 400
         teacher.pan_number = pan_number
         
@@ -241,12 +239,12 @@ def modify_teacher():
         teacher.is_active = is_active
 
     if bankInfo:
-        if bankInfo != {}:
-            if bankInfo.get('ifscCode') is not None and len(bankInfo.get('ifscCode')) != 11:
+        if any(value for value in bankInfo.values()):
+            if bankInfo.get('ifscCode') != '' and len(bankInfo.get('ifscCode')) != 11:
                 return jsonify({'success': False, 'error': 'IFSC must be of 11 characters'}), 400
-            if bankInfo.get('AccountNumber') is not None and len(bankInfo.get('AccountNumber')) > 18:
+            if bankInfo.get('AccountNumber') != '' and len(bankInfo.get('AccountNumber')) > 18:
                 return jsonify({'success': False, 'error': 'Invalid Account Number'}), 400
-            if bankInfo.get('AccountNumber') is not None:
+            if bankInfo.get('AccountNumber') != '':
                 try:
                     int(bankInfo.get('AccountNumber'))
                 except (TypeError, ValueError):
