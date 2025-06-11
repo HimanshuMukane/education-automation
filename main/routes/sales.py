@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, session, url_for, current_app, make_response, redirect, flash, send_file
-from main.models import Student, StudentInvoice, Admin
+from main.models import Student, StudentInvoice, Admin, Sales
 from main.utils import util_db_add, util_db_update, util_db_delete, login_required, is_admin
 from datetime import date, datetime
 import pdfkit
@@ -12,16 +12,23 @@ sales_bp = Blueprint('sales', __name__, url_prefix='/sales')
 @sales_bp.route('/dashboard')
 @login_required
 def dashboard():
-    user = session.get('user')
-    if not user or user.get('role') != 'sales':
-        return redirect(url_for('index.login'))
-
-    sales = Sales.query.filter_by(email=user.get('email')).first()
-    if not sales:
-        flash('Sales profile not found.', 'danger')
-        return redirect(url_for('index.login'))
-
-    return render_template('sales_dashboard.html', sales_name=user.get('name'))
+    invoices = (
+        StudentInvoice.query
+        .join(Student, Student.id == StudentInvoice.student_id)
+        .add_columns(
+            StudentInvoice.id,
+            Student.grade,
+            Student.fname, Student.lname,
+            StudentInvoice.total_fees,
+            StudentInvoice.fees_paid,
+            StudentInvoice.date
+        )
+        .order_by(StudentInvoice.id.desc())
+        .all()
+    )
+    return render_template('sales_dashboard.html',
+                           invoices=invoices,
+                           current_date=date.today().isoformat())
 
 @sales_bp.route('/fee')
 @login_required
@@ -41,7 +48,6 @@ def lookup_fee():
         return jsonify({'success': False, 'new': True}), 200
 
     return jsonify({'success': True, 'total_fees': student.total_fees}), 200
-
 
 @sales_bp.route('/invoice/<int:inv_id>')
 @login_required
@@ -83,7 +89,7 @@ def delete_record(inv_id):
     if not inv:
         return jsonify({'success': False, 'error': 'Invoice not found'}), 404
 
-    # roll back the student's paid total
+    # roll back the student’s paid total
     inv.student.fees_paid -= inv.fees_paid
 
     # delete the invoice
@@ -92,7 +98,6 @@ def delete_record(inv_id):
         return jsonify({'success': False, 'error': result.get('error')}), 500
 
     return jsonify({'success': True, 'message': result.get('message')}), 200
-
 
 # ── EDIT existing invoice's fees_paid ─────────────────────────────────────────
 @sales_bp.route('/record/<int:inv_id>', methods=['PUT'])
@@ -127,11 +132,6 @@ def edit_record(inv_id):
 @login_required
 @is_admin(2)
 def record_payment():
-    # Get the current sales admin
-    current_admin = Admin.query.filter_by(email=session['user']['email']).first()
-    if not current_admin:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-
     data = request.get_json()
     grade = data.get('grade','').strip()
     name  = data.get('name','').strip()
@@ -178,8 +178,7 @@ def record_payment():
             student_id=student.id,
             date=date.today(),
             total_fees=total,
-            fees_paid=paid,
-            created_by=current_admin.name  # Add the sales person's name
+            fees_paid=paid
         )
         util_db_add(inv)
 
@@ -209,14 +208,85 @@ def record_payment():
         pct['kit']   = 0.00
 
     breakdown = { k: round(total * v, 2) for k,v in pct.items() }
-    html = render_template('invoice.html', 
-                         student=student, 
-                         invoice=inv, 
-                         breakdown=breakdown,
-                         sales_person=current_admin.name)  # Add sales person to invoice
+    html = render_template('invoice.html', student=student, invoice=inv, breakdown=breakdown)
     pdf = pdfkit.from_string(html, False, options=current_app.config.get('WKHTMLTOPDF_OPTIONS', {}))
 
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'attachment; filename=invoice.pdf'
     return response
+
+@sales_bp.route('/generate-invoice', methods=['GET', 'POST'])
+@login_required
+def generate_invoice():
+    user = session.get('user')
+    if not user or user.get('role') != 'sales':
+        return redirect(url_for('index.login'))
+
+    sales = Sales.query.filter_by(email=user.get('email')).first()
+    if not sales:
+        flash('Sales profile not found.', 'danger')
+        return redirect(url_for('index.login'))
+
+    if request.method == 'POST':
+        month = request.form.get('month')
+        year = request.form.get('year')
+        
+        # Get all student invoices for the selected month and year
+        start_date = date(int(year), int(month), 1)
+        if int(month) == 12:
+            end_date = date(int(year) + 1, 1, 1)
+        else:
+            end_date = date(int(year), int(month) + 1, 1)
+
+        invoices = StudentInvoice.query.filter(
+            StudentInvoice.sales_id == sales.id,
+            StudentInvoice.date >= start_date,
+            StudentInvoice.date < end_date
+        ).all()
+
+        # Calculate totals and prepare entries
+        total_amount = 0
+        entries = []
+        for inv in invoices:
+            student = inv.student
+            commission = inv.fees_paid * (sales.commission_rate / 100)
+            total_amount += inv.fees_paid
+            
+            entries.append({
+                'date': inv.date,
+                'student_name': f"{student.fname} {student.lname}",
+                'grade': student.grade,
+                'amount': inv.fees_paid,
+                'commission': commission
+            })
+
+        total_commission = total_amount * (sales.commission_rate / 100)
+
+        # Generate PDF
+        html = render_template('sales_invoice_template.html',
+                             sales=sales,
+                             month=month,
+                             year=year,
+                             entries=entries,
+                             total_amount=total_amount,
+                             total_commission=total_commission,
+                             commission_rate=sales.commission_rate)
+
+        pdf = pdfkit.from_string(html, False, options=current_app.config.get('WKHTMLTOPDF_OPTIONS', {}))
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=sales_commission_{month}_{year}.pdf'
+        return response
+
+    # For GET request, show the form
+    months = [
+        ('01', 'January'), ('02', 'February'), ('03', 'March'),
+        ('04', 'April'), ('05', 'May'), ('06', 'June'),
+        ('07', 'July'), ('08', 'August'), ('09', 'September'),
+        ('10', 'October'), ('11', 'November'), ('12', 'December')
+    ]
+    
+    return render_template('sales_invoice_select.html', 
+                         months=months,
+                         current_date=datetime.now())

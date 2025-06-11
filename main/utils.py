@@ -215,9 +215,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
-            event_logger.warning(f"User Key Not In Session")
-            if request.method == "GET" : return redirect(url_for("index.login"))
-            return jsonify({"success":False, "error": "login required for performing action"}), 403              
+            return redirect(url_for('index.login'))
         return f(*args, **kwargs)
     return decorated_function
 

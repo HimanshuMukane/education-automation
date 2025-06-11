@@ -136,6 +136,82 @@
                 </div>
             </div>
 
+            <!-- Create Sales Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Create Sales Account</span>
+                </div>
+                <div class="card-body" id="createSalesForm">
+                    <form id="createSalesForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label title="Compulsory Field" for="salesName" class="form-label">Name*</label>
+                                <input type="text" class="form-control" id="salesName" placeholder="Sales person full name" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label title="Compulsory Field" for="salesEmail" class="form-label">Email*</label>
+                                <input type="email" class="form-control" id="salesEmail" placeholder="sales@example.com" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label title="Compulsory Field" for="salesPassword" class="form-label">Password*</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="salesPassword" placeholder="Enter a password" required />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('salesPassword')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label title="Compulsory Field" for="salesCommission" class="form-label">Commission Rate (%)*</label>
+                                <input type="number" step="0.01" class="form-control" id="salesCommission" placeholder="e.g. 10.00" required />
+                            </div>
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Additional Details</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label title="Compulsory Field" for="salesMobile" class="form-label">Mobile Number*</label>
+                                        <input type="number" class="form-control" id="salesMobile" placeholder="Mobile Number" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label title="Compulsory Field" for="salesAddress" class="form-label">Address*</label>
+                                        <input type="text" class="form-control" id="salesAddress" placeholder="Address" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label title="Compulsory Field" for="salesPan" class="form-label">PAN Number*</label>
+                                        <input type="text" class="form-control" id="salesPan" placeholder="PAN Number" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="salesBankName" class="form-label">Bank Name</label>
+                                        <input type="text" class="form-control" id="salesBankName" placeholder="Name of the Bank" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="salesBankAddress" class="form-label">Bank Address</label>
+                                        <input type="text" class="form-control" id="salesBankAddress" placeholder="Bank Address" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="salesAccountNumber" class="form-label">Account Number</label>
+                                        <input type="number" class="form-control" id="salesAccountNumber" placeholder="eg. 6980000XXXX" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="salesIfscCode" class="form-label">IFSC Code</label>
+                                        <input type="text" class="form-control" id="salesIfscCode" placeholder="IFSCS" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-person-plus-fill me-2"></i>Create Sales Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- Teachers List -->
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -222,6 +298,85 @@
                                         </button>
                                         <button class="btn btn-sm btn-danger delete-teacher-btn">
                                             <i class="bi bi-trash delete-teacher-btn"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales List -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Existing Sales Team</span>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" id="salesSearch"
+                            placeholder="Search sales...">
+                        <select class="form-select form-select-sm" id="salesSort">
+                            <option value="name">Sort by Name</option>
+                            <option value="email">Sort by Email</option>
+                            <option value="commission">Sort by Commission</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Communication</th>
+                                    <th>Commission Rate</th>
+                                    <th>Payment Details</th>
+                                    <th>Is Active</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTableBody">
+                                {% for sales in sales_team %}
+                                <tr data-sales-id="{{ sales.id }}" data-sales-name="{{ sales.name }}"
+                                    data-sales-email="{{ sales.email }}"
+                                    data-sales-commission="{{ sales.commission_rate }}"
+                                    data-sales-address="{{ sales.address }}"
+                                    data-sales-mobile="{{ sales.mobile }}"
+                                    data-sales-pan="{{ sales.pan_number }}"
+                                    data-sales-is-active="{{ sales.is_active|lower }}"
+                                    data-sales-bank-name="{{ sales.bank_info.bankName }}"
+                                    data-sales-bank-address="{{ sales.bank_info.bankAddress }}"
+                                    data-sales-account-number="{{ sales.bank_info.AccountNumber }}"
+                                    data-sales-ifsc-code="{{ sales.bank_info.ifscCode }}">
+                                    <td>{{ sales.id }}</td>
+                                    <td class="sales-name">{{ sales.name }}</td>
+                                    <td class="communication">
+                                        <span class="sales-email">Email: {{ sales.email }}</span><br>
+                                        <span class="sales-mobile">Mobile: {{ sales.mobile }}</span><br>
+                                        <span class="sales-address">Address: {{ sales.address }}</span>
+                                    </td>
+                                    <td class="sales-commission">{{ sales.commission_rate }}%</td>
+                                    <td class="sales-payment-details">
+                                        <span class="bank-name">Bank Name: {{ sales.bank_info.bankName }}</span><br>
+                                        <span class="bank-address">Bank Address: {{ sales.bank_info.bankAddress }}</span><br>
+                                        <span class="account-number">Account Number: {{ sales.bank_info.AccountNumber }}</span><br>
+                                        <span class="pan-number">PAN Number: {{ sales.pan_number }}</span><br>
+                                        <span class="ifsc-code">IFSC: {{ sales.bank_info.ifscCode }}</span>
+                                    </td>
+                                    <td class="sales-isActive">
+                                        {% if sales.is_active %}
+                                        Active
+                                        {% else %}
+                                        Inactive
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-primary edit-sales-btn">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-sales-btn">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
                                 </tr>

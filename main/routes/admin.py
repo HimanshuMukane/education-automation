@@ -1,58 +1,74 @@
 from flask import Blueprint, request, session, render_template, redirect, url_for, jsonify
-from main.models import Timetable, Teacher, Admin, Attendance, StudentInvoice
-from main.utils import util_db_add, util_db_update, util_db_delete, generate_password_hash, login_required, is_admin
+from main.models import Timetable, Teacher, Admin, Attendance, StudentInvoice, Sales
+from main.utils import util_db_add, util_db_update, util_db_delete, generate_password_hash, login_required
 from main.extensions import db
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.route('/dashboard')
 @login_required
-@is_admin(2)
 def dashboard():
-    return redirect(url_for('admin.create_teacher'))
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+    return render_template('admin_dashboard.html')
+
 @admin_bp.route('/create/sales', methods=['GET', 'POST'])
 @login_required
-@is_admin(2)
 def create_sales():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     if request.method == "GET":
-        admins = Admin.query.filter_by(level=2)
-        return render_template('create_sales_admin.html', admins=admins)
+        # Get all sales accounts
+        sales_accounts = Sales.query.filter_by(is_active=True).all()
+        return render_template('create_sales_admin.html', sales_accounts=sales_accounts)
 
     # Else post request to create sales 
     data = request.get_json()
     if not data:
-        return jsonify({'success': True, 'error': 'No data provided'}), 400
+        return jsonify({'success': False, 'error': 'No data provided'}), 400
     
     name = data.get('name', '').strip()
     email = data.get('email', '').strip().lower()
     password = data.get('password', '')
-    role = data.get('role','').strip().lower()
+    mobile = data.get('mobile', '').strip()
+    address = data.get('address', '').strip()
+    pan_number = data.get('pan_number', '').strip()
+    bank_info = data.get('bank_info', {})
+    commission_rate = data.get('commission_rate', 10.0)
 
-    if not all([name, email, password, role]):
+    if not all([name, email, password, mobile, address, pan_number]):
         return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
-    if role != 'admin':
-        return jsonify({'success': False, 'error': 'Invalid request'}), 400
-
-    if Admin.query.filter_by(email=email).first():
-        return jsonify({'success' : False, 'error': 'Email already exists'}), 400
+    if Sales.query.filter_by(email=email).first():
+        return jsonify({'success': False, 'error': 'Email already exists'}), 400
 
     hashed_password = generate_password_hash(password)
-    new_admin = Admin(
+    new_sales = Sales(
         name=name,
         email=email,
         password=hashed_password,
+        mobile=mobile,
+        address=address,
+        pan_number=pan_number,
+        bank_info=bank_info,
+        commission_rate=commission_rate
     )
-    result = util_db_add(new_admin)
+    result = util_db_add(new_sales)
     if not result.get('success'):
         return jsonify({'success': False, 'error': 'User creation error'}), 500
-    admin = new_admin.to_dict()
-    return jsonify({'success': True, 'message': 'User created successfully', 'data': admin}), 200
+    sales = new_sales.to_dict()
+    return jsonify({'success': True, 'message': 'Sales account created successfully', 'data': sales}), 200
 
 @admin_bp.route('/modify/sales', methods=['PUT', 'DELETE'])
 @login_required
-@is_admin(1)
 def modify_sales():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     """
     PUT  → update admin's name/email/password
     DELETE → deactivate (or hard-delete) a admin
@@ -98,14 +114,16 @@ def modify_sales():
 
     return jsonify({ 'success': True, 'message': 'Admin updated', 'admin': data}), 200
 
-
 @admin_bp.route('/create/teacher', methods=['GET','POST'])
 @login_required
-@is_admin(1)
 def create_teacher():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     if request.method == "GET":
         teachers = Teacher.query.all()
-        return render_template('admin_dashboard.html', teachers=teachers)
+        return render_template('create_teacher_admin.html', teachers=teachers)
 
     data = request.get_json()
     name = data.get('name','').strip()
@@ -170,11 +188,13 @@ def create_teacher():
     teacher = new_teacher.to_dict()
     return jsonify({ 'success': True, 'message': 'Teacher created successfully', 'teacher': teacher }), 200
 
-# ── Edit a Teacher (PUT / DELETE) ─────────────────────────────────────────────────
 @admin_bp.route('/modify/teacher', methods=['PUT', 'DELETE'])
 @login_required
-@is_admin(1)
 def modify_teacher():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     """
     PUT  → update teacher's name/email/password
     DELETE → deactivate (or hard-delete) a teacher
@@ -262,16 +282,22 @@ def modify_teacher():
 
 @admin_bp.route('/timetables')
 @login_required
-@is_admin(1)
 def timetables():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     entries = Timetable.query.order_by(Timetable.day_of_week, Timetable.start_time).all()
     teachers = Teacher.query.filter_by(is_active=True).all()
     return render_template('timetable.html', entries=entries, teachers=teachers)
 
 @admin_bp.route('/timetable/create', methods=['POST'])
 @login_required
-@is_admin(1)
 def create_timetable():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     data = request.get_json()
     try:
         subject = data['subject'].strip()
@@ -301,8 +327,11 @@ def create_timetable():
 
 @admin_bp.route('/timetable/modify', methods=['PUT', 'DELETE'])
 @login_required
-@is_admin(1)
 def modify_entry():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     data = request.get_json()
     entry = Timetable.query.get(data.get('id'))
     if not entry:
@@ -338,8 +367,11 @@ def modify_entry():
 
 @admin_bp.route('/teacher-analytics')
 @login_required
-@is_admin(1)
 def teacher_analytics():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     from datetime import datetime, timedelta
     from sqlalchemy import func, and_, or_
     
@@ -460,13 +492,16 @@ def teacher_analytics():
 
 @admin_bp.route('/sales-analytics')
 @login_required
-@is_admin(1)
 def sales_analytics():
+    user = session.get('user')
+    if not user or user.get('role') != 'admin':
+        return redirect(url_for('index.login'))
+        
     from datetime import datetime
     from sqlalchemy import func, and_, or_
     
     # Get all active sales admins (level 2)
-    sales_admins = Admin.query.filter_by(level=2, is_active=True).all()
+    sales_admins = Admin.query.filter_by(is_active=True).all()
     analytics = []
     
     # Get selected month and year from query params

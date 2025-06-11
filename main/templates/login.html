@@ -17,7 +17,7 @@
                 <h1>Welcome Back</h1>
                 <p>Please sign in to continue</p>
             </div>
-            <form action="{{ url_for('auth.login') }}" method="post">
+            <form action="{{ url_for('auth.login') }}" method="post" id="loginForm">
                 <div class="mb-3">
                     <label for="emailInput" class="form-label">Email address</label>
                     <input type="email" class="form-control" id="emailInput" name="email" placeholder="Enter your email"
@@ -40,8 +40,9 @@
                     <label for="roleSelect" class="form-label">Select Role</label>
                     <select class="form-select" id="roleSelect" name="role" required>
                         <option value="" selected disabled>Choose your role</option>
-                        <option value="teacher">Teacher</option>
                         <option value="admin">Admin</option>
+                        <option value="sales">Sales</option>
+                        <option value="teacher">Teacher</option>
                     </select>
                 </div>
 
@@ -69,6 +70,85 @@
                 input.type = 'password';
                 icon.classList.replace('bi-eye-slash', 'bi-eye');
             }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInp').value;
+            const role = document.getElementById('roleSelect').value;
+
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
+
+            fetch('{{ url_for("auth.login") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    role: role
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 1000);
+                } else {
+                    showAlert(data.error, 'danger');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            })
+            .catch(error => {
+                showAlert('An unexpected error occurred. Please try again.', 'danger');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            });
+        });
+
+        function showAlert(message, type) {
+            // Remove any existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+
+            // Create new alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.role = 'alert';
+
+            // Add icon based on alert type
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = 'bi-check-circle-fill';
+                    break;
+                case 'danger':
+                    icon = 'bi-exclamation-triangle-fill';
+                    break;
+                default:
+                    icon = 'bi-info-circle-fill';
+            }
+
+            alertDiv.innerHTML = `
+                <i class="bi ${icon} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            // Insert alert before the form
+            const form = document.getElementById('loginForm');
+            form.parentNode.insertBefore(alertDiv, form);
         }
     </script>
 </body>

@@ -1,51 +1,70 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Commission Invoice</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
+            margin: 40px;
+            color: #000;
         }
-        .header {
+
+        .header,
+        .footer {
             text-align: center;
-            margin-bottom: 30px;
         }
-        .invoice-details {
-            margin-bottom: 30px;
+
+        h1,
+        h2,
+        h3 {
+            margin: 0.5rem 0;
         }
-        .invoice-details p {
-            margin: 5px 0;
+
+        .section {
+            margin-top: 1.5rem;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-top: 1rem;
+            margin-bottom: 20px;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
+
         th {
             background-color: #f5f5f5;
         }
-        .total-section {
+
+        .totals {
+            margin-top: 1rem;
             text-align: right;
-            margin-top: 20px;
         }
-        .total-section p {
-            margin: 5px 0;
-        }
-        .footer {
-            margin-top: 50px;
-            text-align: center;
+
+        .small-text {
             font-size: 0.9em;
-            color: #666;
+        }
+
+        .bank-info p,
+        .bill-to p {
+            margin: 0.25rem 0;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        hr {
+            margin: 2rem 0;
         }
     </style>
 </head>
@@ -53,44 +72,63 @@
 <body>
     <div class="header">
         <h1>Sales Commission Invoice</h1>
+        <h2>{{ sales.name }}</h2>
+        <p>{{ sales.email }}</p>
     </div>
 
-    <div class="invoice-details">
-        <p><strong>Sales Person:</strong> {{ sales.name }}</p>
-        <p><strong>Email:</strong> {{ sales.email }}</p>
-        <p><strong>Mobile:</strong> {{ sales.mobile }}</p>
-        <p><strong>PAN Number:</strong> {{ sales.pan_number }}</p>
-        <p><strong>Period:</strong> {{ months|selectattr('0', 'equalto', month)|map(attribute='1')|first }} {{ year }}</p>
-        <p><strong>Invoice Date:</strong> {{ now().strftime('%Y-%m-%d') }}</p>
+    <div class="section invoice-details">
+        <h3>Invoice Details</h3>
+        <p><strong>Month:</strong> {{ month }}/{{ year }}</p>
+        <p><strong>Total Sales:</strong> ₹{{ total_amount }}</p>
+        <p><strong>Commission Rate:</strong> {{ commission_rate }}%</p>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Student Name</th>
-                <th>Amount Collected</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in entries %}
-            <tr>
-                <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
-                <td>{{ entry.student_name }}</td>
-                <td>₹{{ entry.amount }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="total-section">
-        <p><strong>Total Amount Collected:</strong> ₹{{ total_amount }}</p>
-        <p><strong>Commission (10%):</strong> ₹{{ commission }}</p>
+    <div class="section bank-info">
+        <h3>Bank Details</h3>
+        <p><strong>Bank Name:</strong> {{ sales.bank_info.bankName }}</p>
+        <p><strong>Bank Address:</strong> {{ sales.bank_info.bankAddress }}</p>
+        <p><strong>Account Number:</strong> {{ sales.bank_info.AccountNumber }}</p>
+        <p><strong>IFSC Code:</strong> {{ sales.bank_info.ifscCode }}</p>
     </div>
+
+    <div class="section">
+        <h3>Sales Details</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Student Name</th>
+                    <th>Grade</th>
+                    <th>Amount</th>
+                    <th>Commission</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.date.strftime('%d %b %Y') }}</td>
+                    <td>{{ entry.student_name }}</td>
+                    <td>{{ entry.grade }}</td>
+                    <td>₹{{ entry.amount }}</td>
+                    <td>₹{{ entry.commission }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="totals">
+        <p>Total Sales Amount: ₹{{ total_amount }}</p>
+        <p>Total Commission: ₹{{ total_commission }}</p>
+    </div>
+
+    <hr />
 
     <div class="footer">
-        <p>This is a computer-generated invoice and does not require a signature.</p>
-        <p>Thank you for your service!</p>
+        <p><strong>TECHYBRID THINKTANK PRIVATE LIMITED</strong></p>
+        <p>5TH FLOOR, 159, INDUSTRY HOUSE, HT PAREKH MARG, CHURCHGATE, MUMBAI - 400020</p>
+        <p class="small-text">All Fee Paid are Non-Refundable</p>
+        <p class="small-text">SAC : 998314</p>
     </div>
 </body>
 

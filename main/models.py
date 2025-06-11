@@ -56,6 +56,7 @@ class Sales(BaseModel):
     address = db.Column(db.String(100), nullable=False)
     mobile = db.Column(db.String(10), nullable=False)
     pan_number = db.Column(db.String(11), nullable=False)
+    commission_rate = db.Column(db.Float, default=10.0, nullable=False)  # Default 10% commission
     bank_info = db.Column(db.JSON, nullable=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Generate Sales Invoice</title>
+    <title>Generate Sales Commission Invoice</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet" />
@@ -50,15 +50,15 @@
                             <label class="form-label">Month</label>
                             <select name="month" class="form-select" required>
                                 {% for value, label in months %}
-                                <option value="{{ value }}" {% if value == now().strftime('%m') %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ value }}" {% if value == current_date.strftime('%m') %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Year</label>
                             <select name="year" class="form-select" required>
-                                {% for year in range(now().year - 1, now().year + 1) %}
-                                <option value="{{ year }}" {% if year == now().year %}selected{% endif %}>{{ year }}</option>
+                                {% for year in range(current_date.year - 1, current_date.year + 1) %}
+                                <option value="{{ year }}" {% if year == current_date.year %}selected{% endif %}>{{ year }}</option>
                                 {% endfor %}
                             </select>
                         </div>
