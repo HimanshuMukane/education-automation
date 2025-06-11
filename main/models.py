@@ -119,6 +119,7 @@ class StudentInvoice(BaseModel):
     date = db.Column(db.Date, nullable=False, index=True)
     fees_paid = db.Column(db.Float, nullable=False)
     total_fees = db.Column(db.Float, nullable=False)
+    created_by = db.Column(db.String(100), nullable=False)  # Name of the sales person who created the invoice
 
     def __repr__(self):
         return f"<StudentInvoice {self.student_id} {self.date}>"
