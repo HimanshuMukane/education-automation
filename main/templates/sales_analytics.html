@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sales Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet" />
+</head>
+
+<body class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar d-none d-md-block">
+        {% include '_partials/_sidebar.html' %}
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="navbar navbar-dark bg-dark d-md-none fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Sales Analytics</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar -->
+    <div class="offcanvas offcanvas-start d-md-none" id="mobileSidebar">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Menu</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            {% include '_partials/_sidebar.html' %}
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content flex-grow-1">
+        <div class="container-fluid">
+            <h1 class="mb-4">Sales Analytics</h1>
+
+            <!-- Sales Admin Selector -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <select id="salesSelector" class="form-select">
+                        <option value="">Select Sales Person</option>
+                        {% for admin in analytics %}
+                        <option value="{{ admin.id }}">{{ admin.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {% for admin in analytics %}
+            <div class="sales-analytics" id="sales-{{ admin.id }}" style="display: none;">
+                <!-- Sales Person Info Header -->
+                <div class="sales-info mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-2">{{ admin.name }}</h2>
+                            <p class="mb-0">{{ admin.email }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Month/Year Filter -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form id="filterForm" class="row g-3">
+                            <div class="col-md-5">
+                                <select name="month" class="form-select">
+                                    {% for value, label in months %}
+                                    <option value="{{ value }}" {% if value == selected_month %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <select name="year" class="form-select">
+                                    {% for year in years %}
+                                    <option value="{{ year }}" {% if year|string == selected_year|string %}selected{% endif %}>{{ year }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Key Metrics Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="card metric-card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-cash-coin fs-1 text-success mb-3"></i>
+                                <h3 class="card-title">₹{{ admin.total_amount }}</h3>
+                                <p class="card-text text-muted">Total Amount Collected</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card metric-card h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-percent fs-1 text-primary mb-3"></i>
+                                <h3 class="card-title">₹{{ admin.commission }}</h3>
+                                <p class="card-text text-muted">Commission (10%)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Details Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Student Details</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Date</th>
+                                    <th>Amount Paid</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in admin.student_details %}
+                                <tr>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>₹{{ student.amount }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sales selector functionality
+        const salesSelect = document.getElementById('salesSelector');
+        const salesAnalytics = document.querySelectorAll('.sales-analytics');
+
+        salesSelect.addEventListener('change', function() {
+            const selectedId = this.value;
+            salesAnalytics.forEach(div => {
+                div.style.display = div.id === `sales-${selectedId}` ? 'block' : 'none';
+            });
+        });
+
+        // Filter form AJAX submission
+        document.getElementById('filterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const queryString = new URLSearchParams(formData).toString();
+            
+            fetch(`{{ url_for('admin.sales_analytics') }}?${queryString}`)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newAnalytics = doc.querySelectorAll('.sales-analytics');
+                    
+                    // Update each sales person's analytics section
+                    salesAnalytics.forEach((oldDiv, index) => {
+                        const newDiv = newAnalytics[index];
+                        if (newDiv) {
+                            oldDiv.innerHTML = newDiv.innerHTML;
+                        }
+                    });
+                });
+        });
+    </script>
+</body>
+
+</html> 

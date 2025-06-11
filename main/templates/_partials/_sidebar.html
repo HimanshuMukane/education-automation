@@ -6,49 +6,77 @@
         <span class="fs-4">Dashboard</span>
     </a>
     <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-        {% if user %}
-        {# ── Level‐1 Admin Options ──────────────────────────────────────────────── #}
-        {% if user.role == 'admin' and user.level == 1 %}
+    <ul class="nav flex-column">
+        {% if session.user.role == 'admin' %}
         <li>
-            <a href="{{ url_for('admin.create_sales') }}" class="nav-link link-dark">
-                <i class="bi bi-person-plus-fill me-2"></i>Sales
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('admin.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-person-plus-fill me-2"></i>Teacher
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
             </a>
         </li>
         <li>
-            <a href="{{ url_for('admin.timetables') }}" class="nav-link link-dark">
-                <i class="bi bi-person-plus-fill me-2"></i>Timetable
-            </a>
-        </li>
-
-
-        {# ── Level‐2 Admin (Sales) Options ──────────────────────────────────────── #}
-        {% elif user.role == 'admin' and user.level == 2 %}
-        <li class="nav-item">
-            <a href="{{ url_for('sales.dashboard') }}" class="nav-link link-dark">
-                <i class="bi bi-graph-up-arrow me-2"></i>Sales Home
-            </a>
-        </li>
-
-        {# ── Teacher Options ───────────────────────────────────────────────────── #}
-        {% elif user.role == 'teacher' %}
-        <li class="nav-item">
-            <a href="{{ url_for('teacher.mark_attendance') }}" class="nav-link link-dark">
-                <i class="bi bi-house-door-fill me-2"></i>mark_attendance
+            <a href="{{ url_for('admin.create_teacher') }}" class="nav-link">
+                <i class="bi bi-person-plus"></i>
+                <span>Create Teacher</span>
             </a>
         </li>
         <li>
-            <a href="{{ url_for('teacher.generate_invoice') }}" class="nav-link link-dark">
-                <i class="bi bi-book-fill me-2"></i>generate_invoice
+            <a href="{{ url_for('admin.timetables') }}" class="nav-link">
+                <i class="bi bi-calendar3"></i>
+                <span>Timetable</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('admin.teacher_analytics') }}" class="nav-link">
+                <i class="bi bi-graph-up"></i>
+                <span>Teacher Analytics</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('admin.sales_analytics') }}" class="nav-link">
+                <i class="bi bi-bar-chart"></i>
+                <span>Sales Analytics</span>
+            </a>
+        </li>
+        {% elif session.user.role == 'sales' %}
+        <li>
+            <a href="{{ url_for('sales.dashboard') }}" class="nav-link">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('sales.generate_invoice') }}" class="nav-link">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Generate Invoice</span>
+            </a>
+        </li>
+        {% elif session.user.role == 'teacher' %}
+        <li>
+            <a href="{{ url_for('teacher.dashboard') }}" class="nav-link">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('teacher.mark_attendance') }}" class="nav-link">
+                <i class="bi bi-calendar-check"></i>
+                <span>Mark Attendance</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('teacher.generate_invoice') }}" class="nav-link">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Generate Invoice</span>
             </a>
         </li>
         {% endif %}
-        {% endif %}
+        <li>
+            <a href="{{ url_for('index.logout') }}" class="nav-link">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </li>
     </ul>
     <hr>
     <div class="mt-auto">

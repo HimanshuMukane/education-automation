@@ -3,10 +3,11 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Monthly Invoice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Invoice</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: Arial, sans-serif;
             margin: 40px;
             color: #000;
         }
@@ -30,17 +31,18 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
+            margin-bottom: 20px;
         }
 
         th,
         td {
-            border: 1px solid #333;
-            padding: 0.5rem;
+            border: 1px solid #ddd;
+            padding: 8px;
             text-align: left;
         }
 
         th {
-            background: #eee;
+            background-color: #f5f5f5;
         }
 
         .totals {
@@ -64,19 +66,28 @@
         hr {
             margin: 2rem 0;
         }
+
+        .proxy-badge {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 
 <body>
     <div class="header">
-        <h1>TAX INVOICE</h1>
-        <p class="small-text">This is an electronically generated document and does not require any signature</p>
+        <h1>Teacher Invoice</h1>
+        <h2>{{ teacher.name }}</h2>
+        <p>{{ teacher.email }}</p>
     </div>
 
-    <div class="section bill-to">
+    <div class="section invoice-details">
         <h3>Invoice Details</h3>
-        <p><strong>Invoice Month:</strong> {{ month }}/{{ year }}</p>
-        <p><strong>Teacher Name:</strong> {{ teacher.name }}</p>
+        <p><strong>Month:</strong> {{ month }}/{{ year }}</p>
+        <p><strong>Total Lectures:</strong> {{ total_lectures }}</p>
     </div>
 
     <div class="section bank-info">
@@ -85,8 +96,6 @@
         <p><strong>Bank Address:</strong> {{ teacher.bank_info.bankAddress }}</p>
         <p><strong>Account Number:</strong> {{ teacher.bank_info.AccountNumber }}</p>
         <p><strong>IFSC Code:</strong> {{ teacher.bank_info.ifscCode }}</p>
-        <p><strong>Email:</strong> {{ teacher.email }}</p>
-
     </div>
 
     <div class="section">
@@ -96,19 +105,27 @@
                 <tr>
                     <th>Date</th>
                     <th>Subject</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Rate (₹)</th>
+                    <th>Grade</th>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Payment</th>
                 </tr>
             </thead>
             <tbody>
-                {% for e in entries %}
+                {% for entry in entries %}
                 <tr>
-                    <td>{{ e.date }}</td>
-                    <td>{{ e.subject }}</td>
-                    <td>{{ e.start_time }}</td>
-                    <td>{{ e.end_time }}</td>
-                    <td>{{ teacher.pay_per_lecture }}</td>
+                    <td>{{ entry.date.strftime('%d %b %Y') }}</td>
+                    <td>{{ entry.subject }}</td>
+                    <td>{{ entry.grade }}</td>
+                    <td>{{ entry.start_time.strftime('%H:%M') }}</td>
+                    <td>
+                        {% if entry.is_proxy %}
+                        <span class="proxy-badge">Proxy</span>
+                        {% else %}
+                        Regular
+                        {% endif %}
+                    </td>
+                    <td>₹{{ entry.payment }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -116,8 +133,7 @@
     </div>
 
     <div class="totals">
-        <p>Total Lectures: {{ total_lectures }}</p>
-        <p class="bold">Total Amount: ₹{{ "%.2f"|format(total_amount) }}</p>
+        <p>Total Amount: ₹{{ total_amount }}</p>
     </div>
 
     <hr />

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, session, render_template, redirect, url_for, jsonify
-from main.models import Timetable, Teacher, Admin, Attendance
+from main.models import Timetable, Teacher, Admin, Attendance, StudentInvoice
 from main.utils import util_db_add, util_db_update, util_db_delete, generate_password_hash, login_required, is_admin
+from main.extensions import db
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -334,3 +335,191 @@ def modify_entry():
     if not result.get('success'):
         return jsonify({'success': False, 'error': 'Update failed'}), 500
     return jsonify({'success': True, 'entry': entry.to_dict()}), 200
+
+@admin_bp.route('/teacher-analytics')
+@login_required
+@is_admin(1)
+def teacher_analytics():
+    from datetime import datetime, timedelta
+    from sqlalchemy import func, and_, or_
+    
+    # Get all active teachers
+    teachers = Teacher.query.filter_by(is_active=True).all()
+    analytics = []
+    
+    # Get selected month and year from query params
+    selected_month = request.args.get('month', datetime.now().month)
+    selected_year = request.args.get('year', datetime.now().year)
+    
+    for teacher in teachers:
+        # Get all attendance records for this teacher
+        attendance_records = Attendance.query.join(Timetable).filter(
+            or_(
+                Timetable.teacher_id == teacher.id,
+                Attendance.proxy_id == teacher.id
+            ),
+            db.extract('month', Attendance.date) == int(selected_month),
+            db.extract('year', Attendance.date) == int(selected_year)
+        ).all()
+        
+        # Calculate metrics
+        total_classes = len(attendance_records)
+        proxy_classes = sum(1 for record in attendance_records if record.is_proxy and record.proxy_id == teacher.id)
+        regular_classes = sum(1 for record in attendance_records if not record.is_proxy and record.timetable.teacher_id == teacher.id)
+        absent_classes = sum(1 for record in attendance_records 
+            if record.timetable.teacher_id == teacher.id 
+            and record.is_proxy 
+            and record.proxy_id != teacher.id
+        )
+        
+        # Get monthly earnings
+        monthly_earnings = sum(
+            teacher.pay_per_lecture 
+            for record in attendance_records 
+            if record.is_present and (
+                (record.is_proxy and record.proxy_id == teacher.id) or
+                (not record.is_proxy and record.timetable.teacher_id == teacher.id)
+            )
+        )
+        
+        # Get subject distribution
+        subject_distribution = {}
+        for record in attendance_records:
+            if record.is_present and (
+                (record.is_proxy and record.proxy_id == teacher.id) or
+                (not record.is_proxy and record.timetable.teacher_id == teacher.id)
+            ):
+                subject = record.timetable.subject
+                subject_distribution[subject] = subject_distribution.get(subject, 0) + 1
+        
+        # Get grade distribution
+        grade_distribution = {}
+        for record in attendance_records:
+            if record.is_present and (
+                (record.is_proxy and record.proxy_id == teacher.id) or
+                (not record.is_proxy and record.timetable.teacher_id == teacher.id)
+            ):
+                grade = record.timetable.grade
+                grade_distribution[grade] = grade_distribution.get(grade, 0) + 1
+        
+        # Get day-wise distribution
+        day_distribution = {i: 0 for i in range(7)}
+        for record in attendance_records:
+            if record.is_present and (
+                (record.is_proxy and record.proxy_id == teacher.id) or
+                (not record.is_proxy and record.timetable.teacher_id == teacher.id)
+            ):
+                day = record.timetable.day_of_week
+                day_distribution[day] += 1
+        
+        # Calculate attendance consistency
+        total_scheduled = len(attendance_records)
+        total_present = sum(1 for record in attendance_records 
+            if record.is_present and (
+                (record.is_proxy and record.proxy_id == teacher.id) or
+                (not record.is_proxy and record.timetable.teacher_id == teacher.id)
+            )
+        )
+        attendance_rate = (total_present / total_scheduled * 100) if total_scheduled > 0 else 0
+        
+        # Compile analytics for this teacher
+        teacher_analytics = {
+            'id': teacher.id,
+            'name': teacher.name,
+            'email': teacher.email,
+            'total_classes': total_classes,
+            'proxy_classes': proxy_classes,
+            'regular_classes': regular_classes,
+            'absent_classes': absent_classes,
+            'monthly_earnings': monthly_earnings,
+            'attendance_rate': round(attendance_rate, 2),
+            'subject_distribution': subject_distribution,
+            'grade_distribution': grade_distribution,
+            'day_distribution': day_distribution,
+            'pay_per_lecture': teacher.pay_per_lecture
+        }
+        
+        analytics.append(teacher_analytics)
+    
+    # Generate months and years for dropdown
+    current_year = datetime.now().year
+    years = list(range(current_year - 1, current_year + 1))
+    months = [
+        ('01', 'January'), ('02', 'February'), ('03', 'March'),
+        ('04', 'April'), ('05', 'May'), ('06', 'June'),
+        ('07', 'July'), ('08', 'August'), ('09', 'September'),
+        ('10', 'October'), ('11', 'November'), ('12', 'December')
+    ]
+    
+    return render_template('teacher_analytics.html', 
+                         analytics=analytics,
+                         months=months,
+                         years=years,
+                         selected_month=selected_month,
+                         selected_year=selected_year)
+
+@admin_bp.route('/sales-analytics')
+@login_required
+@is_admin(1)
+def sales_analytics():
+    from datetime import datetime
+    from sqlalchemy import func, and_, or_
+    
+    # Get all active sales admins (level 2)
+    sales_admins = Admin.query.filter_by(level=2, is_active=True).all()
+    analytics = []
+    
+    # Get selected month and year from query params
+    selected_month = request.args.get('month', datetime.now().month)
+    selected_year = request.args.get('year', datetime.now().year)
+    
+    for admin in sales_admins:
+        # Get all student invoices created by this sales admin
+        invoices = StudentInvoice.query.filter(
+            StudentInvoice.created_by == admin.name,
+            db.extract('month', StudentInvoice.date) == int(selected_month),
+            db.extract('year', StudentInvoice.date) == int(selected_year)
+        ).all()
+        
+        # Calculate metrics
+        total_amount = sum(invoice.fees_paid for invoice in invoices)
+        commission = total_amount * 0.10  # 10% commission
+        
+        # Get student details for each invoice
+        student_details = []
+        for invoice in invoices:
+            student = invoice.student
+            student_details.append({
+                'name': f"{student.fname} {student.lname}",
+                'date': invoice.date,
+                'amount': invoice.fees_paid
+            })
+        
+        # Compile analytics for this sales admin
+        admin_analytics = {
+            'id': admin.id,
+            'name': admin.name,
+            'email': admin.email,
+            'total_amount': total_amount,
+            'commission': commission,
+            'student_details': student_details
+        }
+        
+        analytics.append(admin_analytics)
+    
+    # Generate months and years for dropdown
+    current_year = datetime.now().year
+    years = list(range(current_year - 1, current_year + 1))
+    months = [
+        ('01', 'January'), ('02', 'February'), ('03', 'March'),
+        ('04', 'April'), ('05', 'May'), ('06', 'June'),
+        ('07', 'July'), ('08', 'August'), ('09', 'September'),
+        ('10', 'October'), ('11', 'November'), ('12', 'December')
+    ]
+    
+    return render_template('sales_analytics.html', 
+                         analytics=analytics,
+                         months=months,
+                         years=years,
+                         selected_month=selected_month,
+                         selected_year=selected_year)

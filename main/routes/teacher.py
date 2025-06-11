@@ -98,6 +98,15 @@ def handle_attendance_upload():
     if is_proxy:
         attendance.is_proxy = True
         attendance.proxy_id = teacher.id
+        # Mark original teacher as absent
+        original_attendance = Attendance.query.filter_by(
+            timetable_id=attendance.timetable_id,
+            date=attendance.date,
+            proxy_id=None
+        ).first()
+        if original_attendance:
+            original_attendance.is_present = False
+            db.session.add(original_attendance)
 
     base_name = f"{attendance.timetable.grade}_{attendance.timetable.subject}_{attendance.date.isoformat()}_{attendance.timetable.teacher_id}_{attendance.timetable.start_time.strftime('%H%M')}"
     prefix = 'proxy_' if is_proxy else ''
@@ -171,17 +180,34 @@ def generate_invoice():
 
     # Create entries list with all necessary information
     entries = []
+    total_amount = 0
     for record in attendance_records:
+        # Calculate payment based on whether it's a proxy class or regular class
+        if record.is_proxy and record.proxy_id == teacher.id:
+            # For proxy classes, use proxy teacher's pay rate
+            payment = teacher.pay_per_lecture
+        elif not record.is_proxy and record.timetable.teacher_id == teacher.id:
+            # For regular classes, use assigned teacher's pay rate
+            payment = teacher.pay_per_lecture
+        else:
+            continue  # Skip if neither proxy nor regular class for this teacher
+
         entries.append({
             'date': record.date,
             'subject': record.timetable.subject,
             'grade': record.timetable.grade,
             'start_time': record.timetable.start_time,
-            'is_proxy': record.is_proxy
+            'is_proxy': record.is_proxy,
+            'payment': payment
         })
+        total_amount += payment
 
     total_lectures = len(entries)
-    total_amount = total_lectures * teacher.pay_per_lecture
+    
+    # Check if there are any lectures
+    if total_lectures == 0:
+        flash(f'No lectures found for {teacher.name} in {month}/{year}', 'warning')
+        return redirect(url_for('teacher.generate_invoice'))
 
     # render HTML
     rendered = render_template('invoice_template.html',

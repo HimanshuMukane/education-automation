@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sales Commission Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .invoice-details {
+            margin-bottom: 30px;
+        }
+        .invoice-details p {
+            margin: 5px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .total-section {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .total-section p {
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Sales Commission Invoice</h1>
+    </div>
+
+    <div class="invoice-details">
+        <p><strong>Sales Person:</strong> {{ sales.name }}</p>
+        <p><strong>Email:</strong> {{ sales.email }}</p>
+        <p><strong>Mobile:</strong> {{ sales.mobile }}</p>
+        <p><strong>PAN Number:</strong> {{ sales.pan_number }}</p>
+        <p><strong>Period:</strong> {{ months|selectattr('0', 'equalto', month)|map(attribute='1')|first }} {{ year }}</p>
+        <p><strong>Invoice Date:</strong> {{ now().strftime('%Y-%m-%d') }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Student Name</th>
+                <th>Amount Collected</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ entry.student_name }}</td>
+                <td>₹{{ entry.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <p><strong>Total Amount Collected:</strong> ₹{{ total_amount }}</p>
+        <p><strong>Commission (10%):</strong> ₹{{ commission }}</p>
+    </div>
+
+    <div class="footer">
+        <p>This is a computer-generated invoice and does not require a signature.</p>
+        <p>Thank you for your service!</p>
+    </div>
+</body>
+
+</html> 

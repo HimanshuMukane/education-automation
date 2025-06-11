@@ -1,39 +1,27 @@
-from flask import Blueprint, render_template, request, jsonify, session, url_for, current_app, make_response
-from main.models import Student, StudentInvoice, Admin
+from flask import Blueprint, render_template, request, jsonify, session, url_for, current_app, make_response, redirect, flash, send_file
+from main.models import Student, StudentInvoice, Admin, Sales
 from main.utils import util_db_add, util_db_update, util_db_delete, login_required, is_admin
-from datetime import date
+from datetime import date, datetime
 import pdfkit
+import os
+import subprocess
+import tempfile
 
 sales_bp = Blueprint('sales', __name__, url_prefix='/sales')
 
 @sales_bp.route('/dashboard')
 @login_required
-@is_admin(2)
 def dashboard():
-    # Get the current sales admin
-    current_admin = Admin.query.filter_by(email=session['user']['email']).first()
-    if not current_admin:
+    user = session.get('user')
+    if not user or user.get('role') != 'sales':
         return redirect(url_for('index.login'))
 
-    invoices = (
-        StudentInvoice.query
-        .join(Student, Student.id == StudentInvoice.student_id)
-        .add_columns(
-            StudentInvoice.id,
-            Student.grade,
-            Student.fname, Student.lname,
-            StudentInvoice.total_fees,
-            StudentInvoice.fees_paid,
-            StudentInvoice.date,
-            StudentInvoice.created_by
-        )
-        .order_by(StudentInvoice.id.desc())
-        .all()
-    )
-    return render_template('sales_dashboard.html',
-                           invoices=invoices,
-                           current_date=date.today().isoformat(),
-                           sales_person=current_admin.name)
+    sales = Sales.query.filter_by(email=user.get('email')).first()
+    if not sales:
+        flash('Sales profile not found.', 'danger')
+        return redirect(url_for('index.login'))
+
+    return render_template('sales_dashboard.html', sales_name=user.get('name'))
 
 @sales_bp.route('/fee')
 @login_required

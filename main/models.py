@@ -41,12 +41,28 @@ class Admin(BaseModel):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password = db.Column(db.String(255), nullable=False)
-    level = db.Column(db.Integer, nullable=False, default=2)
     is_active = db.Column(db.Boolean, default=True, index=True)
 
     def __repr__(self):
         return f"<Admin {self.name}>"
 
+class Sales(BaseModel):
+    __tablename__ = 'sales'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password = db.Column(db.String(255), nullable=False)
+    address = db.Column(db.String(100), nullable=False)
+    mobile = db.Column(db.String(10), nullable=False)
+    pan_number = db.Column(db.String(11), nullable=False)
+    bank_info = db.Column(db.JSON, nullable=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)
+
+    invoices = db.relationship('StudentInvoice', backref='sales_person', lazy='dynamic')
+
+    def __repr__(self):
+        return f"<Sales {self.name}>"
 
 class Teacher(BaseModel):
     __tablename__ = 'teachers'
@@ -58,7 +74,6 @@ class Teacher(BaseModel):
     role = db.Column(db.String(20), nullable=False)
     address = db.Column(db.String(100), nullable=False)
     mobile = db.Column(db.String(10), nullable=False)
-    pan_number = db.Column(db.String(11), nullable=False)
     pay_per_lecture = db.Column(db.Float, nullable=False)
     bank_info = db.Column(db.JSON, nullable=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
@@ -120,10 +135,10 @@ class StudentInvoice(BaseModel):
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    sales_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False, index=True)
     date = db.Column(db.Date, nullable=False, index=True)
     fees_paid = db.Column(db.Float, nullable=False)
     total_fees = db.Column(db.Float, nullable=False)
-    created_by = db.Column(db.String(100), nullable=False)  # Name of the sales person who created the invoice
 
     def __repr__(self):
         return f"<StudentInvoice {self.student_id} {self.date}>"
