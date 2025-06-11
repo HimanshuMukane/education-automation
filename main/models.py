@@ -55,16 +55,11 @@ class Teacher(BaseModel):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False)
-    address = db.Column(db.String(100), nullable=False)
-    mobile = db.Column(db.String(10), nullable=False)
-    pan_number = db.Column(db.String(11), nullable=False)
-    pay_per_lecture = db.Column(db.Float, nullable=False)
     bank_info = db.Column(db.JSON, nullable=True)
+    pay_per_lecture = db.Column(db.Float, nullable=False)
     is_active = db.Column(db.Boolean, default=True, index=True)
 
-    lectures = db.relationship('Timetable', foreign_keys='Timetable.teacher_id', backref='teacher', lazy='dynamic')
-    proxies = db.relationship('Timetable', foreign_keys='Timetable.proxy_id', backref='proxy_teacher', lazy='dynamic')
+    timetable_entries = db.relationship('Timetable', foreign_keys='Timetable.teacher_id', backref='assigned_teacher', lazy='dynamic')
     invoices = db.relationship('TeacherInvoice', backref='teacher', lazy='dynamic')
 
     def __repr__(self):
@@ -88,21 +83,19 @@ class Student(BaseModel):
 
 
 class Timetable(BaseModel):
-    __tablename__ = 'timetable'
+    __tablename__ = 'timetable_templates'
 
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False, index=True)
-    grade = db.Column(db.String(20), nullable=False, index=True)
     subject = db.Column(db.String(100), nullable=False, index=True)
-    start_time = db.Column(db.Time, nullable=False)
-    end_time = db.Column(db.Time, nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False, index=True)
-    is_present = db.Column(db.Boolean, default=False, server_default='0')
-    is_proxy = db.Column(db.Boolean, default=False)
-    proxy_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=True, index=True)
+    day_of_week = db.Column(db.Integer, nullable=False, index=True)  # 0-6 for Monday-Sunday
+    start_time = db.Column(db.Time, nullable=False)
+    grade = db.Column(db.String(20), nullable=False, index=True)
+
+    attendances = db.relationship('Attendance', backref='timetable', lazy='dynamic')
 
     def __repr__(self):
-        return f"<Timetable {self.date} {self.grade} {self.subject}>"
+        return f"<Timetable {self.subject} {self.day_of_week}>"
 
 
 class TeacherInvoice(BaseModel):
@@ -126,6 +119,23 @@ class StudentInvoice(BaseModel):
     date = db.Column(db.Date, nullable=False, index=True)
     fees_paid = db.Column(db.Float, nullable=False)
     total_fees = db.Column(db.Float, nullable=False)
+    created_by = db.Column(db.String(100), nullable=False)  # Name of the sales person who created the invoice
 
     def __repr__(self):
         return f"<StudentInvoice {self.student_id} {self.date}>"
+
+
+class Attendance(BaseModel):
+    __tablename__ = 'attendance'
+
+    id = db.Column(db.Integer, primary_key=True)
+    timetable_id = db.Column(db.Integer, db.ForeignKey('timetable_templates.id'), nullable=False, index=True)
+    date = db.Column(db.Date, nullable=False, index=True)
+    is_present = db.Column(db.Boolean, default=False)
+    is_proxy = db.Column(db.Boolean, default=False)
+    proxy_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=True, index=True)
+
+    proxy_teacher = db.relationship('Teacher', foreign_keys=[proxy_id])
+
+    def __repr__(self):
+        return f"<Attendance {self.date} {self.timetable.subject}>"

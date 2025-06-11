@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, session, url_for, current_app, make_response
-from main.models import Student, StudentInvoice
+from main.models import Student, StudentInvoice, Admin
 from main.utils import util_db_add, util_db_update, util_db_delete, login_required, is_admin
 from datetime import date
 import pdfkit
@@ -10,6 +10,11 @@ sales_bp = Blueprint('sales', __name__, url_prefix='/sales')
 @login_required
 @is_admin(2)
 def dashboard():
+    # Get the current sales admin
+    current_admin = Admin.query.filter_by(email=session['user']['email']).first()
+    if not current_admin:
+        return redirect(url_for('index.login'))
+
     invoices = (
         StudentInvoice.query
         .join(Student, Student.id == StudentInvoice.student_id)
@@ -19,14 +24,16 @@ def dashboard():
             Student.fname, Student.lname,
             StudentInvoice.total_fees,
             StudentInvoice.fees_paid,
-            StudentInvoice.date
+            StudentInvoice.date,
+            StudentInvoice.created_by
         )
         .order_by(StudentInvoice.id.desc())
         .all()
     )
     return render_template('sales_dashboard.html',
                            invoices=invoices,
-                           current_date=date.today().isoformat())
+                           current_date=date.today().isoformat(),
+                           sales_person=current_admin.name)
 
 @sales_bp.route('/fee')
 @login_required
@@ -88,7 +95,7 @@ def delete_record(inv_id):
     if not inv:
         return jsonify({'success': False, 'error': 'Invoice not found'}), 404
 
-    # roll back the student’s paid total
+    # roll back the student's paid total
     inv.student.fees_paid -= inv.fees_paid
 
     # delete the invoice
@@ -99,7 +106,7 @@ def delete_record(inv_id):
     return jsonify({'success': True, 'message': result.get('message')}), 200
 
 
-# ── EDIT existing invoice’s fees_paid ─────────────────────────────────────────
+# ── EDIT existing invoice's fees_paid ─────────────────────────────────────────
 @sales_bp.route('/record/<int:inv_id>', methods=['PUT'])
 @login_required
 @is_admin(2)
@@ -132,6 +139,11 @@ def edit_record(inv_id):
 @login_required
 @is_admin(2)
 def record_payment():
+    # Get the current sales admin
+    current_admin = Admin.query.filter_by(email=session['user']['email']).first()
+    if not current_admin:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
     data = request.get_json()
     grade = data.get('grade','').strip()
     name  = data.get('name','').strip()
@@ -178,7 +190,8 @@ def record_payment():
             student_id=student.id,
             date=date.today(),
             total_fees=total,
-            fees_paid=paid
+            fees_paid=paid,
+            created_by=current_admin.name  # Add the sales person's name
         )
         util_db_add(inv)
 
@@ -208,7 +221,11 @@ def record_payment():
         pct['kit']   = 0.00
 
     breakdown = { k: round(total * v, 2) for k,v in pct.items() }
-    html = render_template('invoice.html', student=student, invoice=inv, breakdown=breakdown)
+    html = render_template('invoice.html', 
+                         student=student, 
+                         invoice=inv, 
+                         breakdown=breakdown,
+                         sales_person=current_admin.name)  # Add sales person to invoice
     pdf = pdfkit.from_string(html, False, options=current_app.config.get('WKHTMLTOPDF_OPTIONS', {}))
 
     response = make_response(pdf)

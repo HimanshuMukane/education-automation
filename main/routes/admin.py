@@ -1,5 +1,5 @@
 from flask import Blueprint, request, session, render_template, redirect, url_for, jsonify
-from main.models import Timetable, Teacher, Admin
+from main.models import Timetable, Teacher, Admin, Attendance
 from main.utils import util_db_add, util_db_update, util_db_delete, generate_password_hash, login_required, is_admin
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -53,7 +53,7 @@ def create_sales():
 @is_admin(1)
 def modify_sales():
     """
-    PUT  → update admin’s name/email/password
+    PUT  → update admin's name/email/password
     DELETE → deactivate (or hard-delete) a admin
     """
     admin_id = request.json.get('id')
@@ -68,7 +68,7 @@ def modify_sales():
             return jsonify({'success': False, 'error': 'Failed to deactivate account'}), 500
         return jsonify({'success': True, 'message': 'Sales Account deactivated'}), 200
 
-    # Otherwise, it’s a PUT
+    # Otherwise, it's a PUT
     data = request.get_json()
     name = data.get('name','').strip()
     email = data.get('email','').strip().lower()
@@ -176,7 +176,7 @@ def create_teacher():
 @is_admin(1)
 def modify_teacher():
     """
-    PUT  → update teacher’s name/email/password
+    PUT  → update teacher's name/email/password
     DELETE → deactivate (or hard-delete) a teacher
     """
     teacher_id = request.json.get('id')
@@ -191,7 +191,7 @@ def modify_teacher():
             return jsonify({'success': False, 'error': 'Failed to deactivate account'}), 500
         return jsonify({'success': True, 'message': 'Teacher deactivated'}), 200
 
-    # Otherwise, it’s a PUT
+    # Otherwise, it's a PUT
     data = request.get_json()
     name = data.get('name','').strip()
     email = data.get('email','').strip().lower()
@@ -265,7 +265,7 @@ def modify_teacher():
 @login_required
 @is_admin(1)
 def timetables():
-    entries = Timetable.query.all()
+    entries = Timetable.query.order_by(Timetable.day_of_week, Timetable.start_time).all()
     teachers = Teacher.query.filter_by(is_active=True).all()
     return render_template('timetable.html', entries=entries, teachers=teachers)
 
@@ -275,22 +275,24 @@ def timetables():
 def create_timetable():
     data = request.get_json()
     try:
-        date = data['date']
-        grade = data['grade'].strip()
         subject = data['subject'].strip()
-        start_time = data['start_time']
-        end_time = data['end_time']
         teacher_id = int(data['teacher_id'])
+        day_of_week = int(data['day_of_week'])
+        start_time = data['start_time']
+        grade = data['grade'].strip()
     except (KeyError, ValueError):
         return jsonify({'success': False, 'error': 'Invalid input data'}), 400
 
+    # Validate day_of_week (0-6)
+    if not 0 <= day_of_week <= 6:
+        return jsonify({'success': False, 'error': 'Invalid day of week'}), 400
+
     new_entry = Timetable(
-        date=date,
-        grade=grade,
         subject=subject,
+        teacher_id=teacher_id,
+        day_of_week=day_of_week,
         start_time=start_time,
-        end_time=end_time,
-        teacher_id=teacher_id
+        grade=grade
     )
     result = util_db_add(new_entry)
     if not result.get('success'):
@@ -308,7 +310,9 @@ def modify_entry():
         return jsonify({'success': False, 'error': 'Not found'}), 404
 
     if request.method == 'DELETE':
-        # Soft delete flag
+        # Check if there are any attendance records
+        if Attendance.query.filter_by(timetable_id=entry.id).first():
+            return jsonify({'success': False, 'error': 'Cannot delete timetable with attendance records'}), 400
         result = util_db_delete(entry)
         if not result.get('success'):
             return jsonify({'success': False, 'error': 'Deletion failed'}), 500
@@ -316,16 +320,19 @@ def modify_entry():
 
     # PUT → update
     try:
-        entry.date = data['date']
-        entry.grade = data['grade'].strip()
         entry.subject = data['subject'].strip()
-        entry.start_time = data['start_time']
-        entry.end_time = data['end_time']
         entry.teacher_id = int(data['teacher_id'])
+        entry.day_of_week = int(data['day_of_week'])
+        entry.start_time = data['start_time']
+        entry.grade = data['grade'].strip()
     except (KeyError, ValueError):
         return jsonify({'success': False, 'error': 'Invalid data'}), 400
+
+    # Validate day_of_week (0-6)
+    if not 0 <= entry.day_of_week <= 6:
+        return jsonify({'success': False, 'error': 'Invalid day of week'}), 400
+
     result = util_db_update()
     if not result.get('success'):
         return jsonify({'success': False, 'error': 'Update failed'}), 500
-    resp = {}
-    return jsonify({'success': True, 'entry': resp}), 200
+    return jsonify({'success': True, 'entry': entry.to_dict()}), 200
