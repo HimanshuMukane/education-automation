@@ -39,17 +39,24 @@
   </div>
 
   <div class="main-content flex-grow-1">
-
     <div class="container-fluid">
-      <h1 class="mb-4">Timetable Dashboard</h1>
+      <h1 class="mb-4">Weekly Timetable</h1>
       <!-- Create Entry Card -->
       <div class="card mb-4">
         <div class="card-header">Add Lecture</div>
         <div class="card-body">
           <form id="createForm" class="row g-3">
             <div class="col-md-2">
-              <label class="form-label">Date</label>
-              <input type="date" class="form-control" id="date" required />
+              <label class="form-label">Day</label>
+              <select class="form-select" id="day_of_week" required>
+                <option value="0">Monday</option>
+                <option value="1">Tuesday</option>
+                <option value="2">Wednesday</option>
+                <option value="3">Thursday</option>
+                <option value="4">Friday</option>
+                <option value="5">Saturday</option>
+                <option value="6">Sunday</option>
+              </select>
             </div>
             <div class="col-md-2">
               <label class="form-label">Grade</label>
@@ -60,12 +67,8 @@
               <input type="text" class="form-control" id="subject" placeholder="Subject" required />
             </div>
             <div class="col-md-2">
-              <label class="form-label">Start</label>
+              <label class="form-label">Start Time</label>
               <input type="time" class="form-control" id="start_time" required />
-            </div>
-            <div class="col-md-2">
-              <label class="form-label">End</label>
-              <input type="time" class="form-control" id="end_time" required />
             </div>
             <div class="col-md-2">
               <label class="form-label">Teacher</label>
@@ -83,13 +86,13 @@
       </div>
       <!-- Entries Table -->
       <div class="card">
-        <div class="card-header">Existing Lectures</div>
+        <div class="card-header">Weekly Schedule</div>
         <div class="table-responsive">
           <table class="table table-hover mb-0">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Date</th>
+                <th>Day</th>
                 <th>Grade</th>
                 <th>Subject</th>
                 <th>Time</th>
@@ -99,15 +102,14 @@
             </thead>
             <tbody id="entriesBody">
               {% for e in entries %}
-              <tr data-id="{{ e.id }}" data-date="{{ e.date }}" data-grade="{{ e.grade }}"
-                data-subject="{{ e.subject }}" data-start="{{ e.start_time }}" data-end="{{ e.end_time }}"
-                data-teacher-id="{{ e.teacher_id }}">
+              <tr data-id="{{ e.id }}" data-day="{{ e.day_of_week }}" data-grade="{{ e.grade }}"
+                data-subject="{{ e.subject }}" data-start="{{ e.start_time }}" data-teacher-id="{{ e.teacher_id }}">
                 <td>{{ e.id }}</td>
-                <td>{{ e.date }}</td>
+                <td>{{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][e.day_of_week] }}</td>
                 <td>{{ e.grade }}</td>
                 <td>{{ e.subject }}</td>
-                <td>{{ e.start_time }} - {{ e.end_time }}</td>
-                <td>{{ e.teacher.name }}</td>
+                <td>{{ e.start_time }}</td>
+                <td>{{ e.assigned_teacher.name }}</td>
                 <td>
                   <button class="btn btn-sm btn-primary edit-btn">Edit</button>
                   <button class="btn btn-sm btn-danger delete-btn">Delete</button>
@@ -127,10 +129,17 @@
       <div class="modal-content">
         <form id="editForm" class="row g-3 p-3">
           <input type="hidden" id="edit_id" />
-          <!-- same fields as create -->
           <div class="col-md-6">
-            <label class="form-label">Date</label>
-            <input type="date" class="form-control" id="edit_date" required />
+            <label class="form-label">Day</label>
+            <select class="form-select" id="edit_day_of_week" required>
+              <option value="0">Monday</option>
+              <option value="1">Tuesday</option>
+              <option value="2">Wednesday</option>
+              <option value="3">Thursday</option>
+              <option value="4">Friday</option>
+              <option value="5">Saturday</option>
+              <option value="6">Sunday</option>
+            </select>
           </div>
           <div class="col-md-6">
             <label class="form-label">Grade</label>
@@ -141,11 +150,8 @@
             <input type="text" class="form-control" id="edit_subject" required />
           </div>
           <div class="col-md-6">
-            <label class="form-label">Time</label>
-            <div class="d-flex gap-2">
-              <input type="time" class="form-control" id="edit_start_time" required />
-              <input type="time" class="form-control" id="edit_end_time" required />
-            </div>
+            <label class="form-label">Start Time</label>
+            <input type="time" class="form-control" id="edit_start_time" required />
           </div>
           <div class="col-md-6">
             <label class="form-label">Teacher</label>
@@ -170,11 +176,10 @@
     document.getElementById('createForm').addEventListener('submit', e => {
       e.preventDefault();
       const payload = {
-        date: document.getElementById('date').value,
+        day_of_week: document.getElementById('day_of_week').value,
         grade: document.getElementById('grade').value,
         subject: document.getElementById('subject').value,
         start_time: document.getElementById('start_time').value,
-        end_time: document.getElementById('end_time').value,
         teacher_id: document.getElementById('teacher_id').value
       };
       fetch("{{ url_for('admin.create_timetable') }}", {
@@ -219,11 +224,10 @@
       if (e.target.classList.contains('edit-btn')) {
         currentEditId = id;
         document.getElementById('edit_id').value = id;
-        document.getElementById('edit_date').value = row.getAttribute('data-date');
+        document.getElementById('edit_day_of_week').value = row.getAttribute('data-day');
         document.getElementById('edit_grade').value = row.getAttribute('data-grade');
         document.getElementById('edit_subject').value = row.getAttribute('data-subject');
         document.getElementById('edit_start_time').value = row.getAttribute('data-start');
-        document.getElementById('edit_end_time').value = row.getAttribute('data-end');
         document.getElementById('edit_teacher_id').value = row.getAttribute('data-teacher-id');
         editModal.show();
       }
@@ -234,11 +238,10 @@
       e.preventDefault();
       const payload = {
         id: currentEditId,
-        date: document.getElementById('edit_date').value,
+        day_of_week: document.getElementById('edit_day_of_week').value,
         grade: document.getElementById('edit_grade').value,
         subject: document.getElementById('edit_subject').value,
         start_time: document.getElementById('edit_start_time').value,
-        end_time: document.getElementById('edit_end_time').value,
         teacher_id: document.getElementById('edit_teacher_id').value
       };
       fetch("{{ url_for('admin.modify_entry') }}", {
@@ -250,16 +253,15 @@
         .then(data => {
           if (data.success) {
             const row = document.querySelector(`tr[data-id="${currentEditId}"]`);
-            row.setAttribute('data-date', payload.date);
+            row.setAttribute('data-day', payload.day_of_week);
             row.setAttribute('data-grade', payload.grade);
             row.setAttribute('data-subject', payload.subject);
             row.setAttribute('data-start', payload.start_time);
-            row.setAttribute('data-end', payload.end_time);
             row.setAttribute('data-teacher-id', payload.teacher_id);
-            row.cells[1].textContent = payload.date;
+            row.cells[1].textContent = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][payload.day_of_week];
             row.cells[2].textContent = payload.grade;
             row.cells[3].textContent = payload.subject;
-            row.cells[4].textContent = `${payload.start_time} - ${payload.end_time}`;
+            row.cells[4].textContent = payload.start_time;
             row.cells[5].textContent = document.querySelector(`#edit_teacher_id option[value="${payload.teacher_id}"]`).text;
             setTimeout(() => editModal.hide(), 200);
           } else {

@@ -93,7 +93,7 @@
 
             const payload = { name: name, email: email, password: password, role: role };
 
-            fetch('{{ url_for("auth.create_account") }}', {
+            fetch('{{ url_for("auth.register_admin") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
