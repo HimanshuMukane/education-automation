@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session, url_for, current_app, make_response, redirect, flash, send_file
 from main.models import Student, StudentInvoice, Admin, Sales
-from main.utils import util_db_add, util_db_update, util_db_delete, login_required, is_admin
+from main.utils import util_db_add, util_db_update, util_db_delete, login_required, is_sales
 from datetime import date, datetime
 import pdfkit
 import os
@@ -11,7 +11,13 @@ sales_bp = Blueprint('sales', __name__, url_prefix='/sales')
 
 @sales_bp.route('/dashboard')
 @login_required
+@is_sales
 def dashboard():
+    # Get the current sales admin
+    current_admin = Sales.query.filter_by(email=session['user']['email']).first()
+    if not current_admin:
+        return redirect(url_for('index.login'))
+
     invoices = (
         StudentInvoice.query
         .join(Student, Student.id == StudentInvoice.student_id)
@@ -21,37 +27,50 @@ def dashboard():
             Student.fname, Student.lname,
             StudentInvoice.total_fees,
             StudentInvoice.fees_paid,
-            StudentInvoice.date
+            StudentInvoice.date,
+            StudentInvoice.created_by
         )
         .order_by(StudentInvoice.id.desc())
         .all()
     )
     return render_template('sales_dashboard.html',
                            invoices=invoices,
-                           current_date=date.today().isoformat())
+                           current_date=date.today().isoformat(),
+                           sales_person=current_admin.name)
 
 @sales_bp.route('/fee')
 @login_required
-@is_admin(2)
+@is_sales
 def lookup_fee():
-    grade = request.args.get('grade','').strip()
-    name  = request.args.get('name','').strip()
-    if not grade or not name:
-        return jsonify({'success': False, 'error': 'Grade and name are required'}), 400
+    try:
+        grade = request.args.get('grade','').strip()
+        name  = request.args.get('name','').strip()
+        if not grade or not name:
+            return jsonify({'success': False, 'error': 'Grade and name are required'}), 400
 
-    parts = name.split(None,1)
-    fname = parts[0]
-    lname = parts[1] if len(parts)>1 else ''
+        parts = name.split(None,1)
+        fname = parts[0]
+        lname = parts[1] if len(parts)>1 else ''
 
-    student = Student.query.filter_by(grade=grade, fname=fname, lname=lname).first()
-    if not student:
-        return jsonify({'success': False, 'new': True}), 200
+        student = Student.query.filter_by(grade=grade, fname=fname, lname=lname).first()
+        if not student:
+            return jsonify({'success': False, 'new': True, 'error': None}), 200
 
-    return jsonify({'success': True, 'total_fees': student.total_fees}), 200
+        return jsonify({
+            'success': True, 
+            'total_fees': student.total_fees,
+            'error': None
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'new': False
+        }), 500
 
 @sales_bp.route('/invoice/<int:inv_id>')
 @login_required
-@is_admin(2)
+@is_sales
 def download_invoice(inv_id):
     inv = StudentInvoice.query.get_or_404(inv_id)
     student = inv.student  # via backref
@@ -83,13 +102,13 @@ def download_invoice(inv_id):
 
 @sales_bp.route('/record/<int:inv_id>', methods=['DELETE'])
 @login_required
-@is_admin(2)
+@is_sales
 def delete_record(inv_id):
     inv = StudentInvoice.query.get(inv_id)
     if not inv:
         return jsonify({'success': False, 'error': 'Invoice not found'}), 404
 
-    # roll back the student’s paid total
+    # roll back the student's paid total
     inv.student.fees_paid -= inv.fees_paid
 
     # delete the invoice
@@ -102,7 +121,7 @@ def delete_record(inv_id):
 # ── EDIT existing invoice's fees_paid ─────────────────────────────────────────
 @sales_bp.route('/record/<int:inv_id>', methods=['PUT'])
 @login_required
-@is_admin(2)
+@is_sales
 def edit_record(inv_id):
     data = request.get_json()
     new_paid = data.get('fees_paid')
@@ -130,91 +149,101 @@ def edit_record(inv_id):
 
 @sales_bp.route('/record', methods=['POST'])
 @login_required
-@is_admin(2)
+@is_sales
 def record_payment():
-    data = request.get_json()
-    grade = data.get('grade','').strip()
-    name  = data.get('name','').strip()
-    paid_raw = data.get('fees_paid')
-    total_raw = data.get('total_fees')
-
-    if not grade or not name or paid_raw is None or total_raw is None:
-        return jsonify({'success': False, 'error': 'All fields are required'}), 400
-
     try:
-        paid = float(paid_raw)
-        total = float(total_raw)
-        if paid < 0 or total < 0:
-            raise ValueError()
-    except:
-        return jsonify({'success': False, 'error': 'Invalid numbers provided'}), 400
+        data = request.get_json()
+        grade = data.get('grade','').strip()
+        name  = data.get('name','').strip()
+        paid_raw = data.get('fees_paid')
+        total_raw = data.get('total_fees')
 
-    parts = name.split(None,1)
-    fname = parts[0]
-    lname = parts[1] if len(parts)>1 else ''
+        if not grade or not name or paid_raw is None or total_raw is None:
+            return jsonify({'success': False, 'error': 'All fields are required'}), 400
 
-    # find or create student
-    student = Student.query.filter_by(grade=grade, fname=fname, lname=lname).first()
-    if not student:
-        student = Student(
-            grade=grade,
-            fname=fname,
-            lname=lname,
-            total_fees=total,
-            fees_paid=0.0
-        )
-        util_db_add(student)
-    else:
-        # update total_fees if changed
-        if abs(student.total_fees - total) > 0.01:
-            student.total_fees = total
+        try:
+            paid = float(paid_raw)
+            total = float(total_raw)
+            if paid < 0 or total < 0:
+                raise ValueError()
+        except:
+            return jsonify({'success': False, 'error': 'Invalid numbers provided'}), 400
 
-    # update or create invoice
-    inv = StudentInvoice.query.filter_by(student_id=student.id).first()
-    if inv:
-        inv.fees_paid += paid
-    else:
-        inv = StudentInvoice(
-            student_id=student.id,
-            date=date.today(),
-            total_fees=total,
-            fees_paid=paid
-        )
-        util_db_add(inv)
+        # Get current sales person
+        current_sales = Sales.query.filter_by(email=session['user']['email']).first()
+        if not current_sales:
+            return jsonify({'success': False, 'error': 'Sales person not found'}), 404
 
-    # sync Student.fees_paid
-    student.fees_paid += paid
+        parts = name.split(None,1)
+        fname = parts[0]
+        lname = parts[1] if len(parts)>1 else ''
 
-    result = util_db_update()
-    if not result.get('success'):
-        return jsonify({'success': False, 'error': 'Database update failed'}), 500
+        # find or create student
+        student = Student.query.filter_by(grade=grade, fname=fname, lname=lname).first()
+        if not student:
+            student = Student(
+                grade=grade,
+                fname=fname,
+                lname=lname,
+                total_fees=total,
+                fees_paid=0.0
+            )
+            util_db_add(student)
 
-    # percentage breakdown logic (same as before)
-    pct = {
-        'tuition': 0.82,
-        'books':   0.04,
-        'ebook':   0.02,
-        'kit':     0.02,
-        'uniform': 0.04,
-        'bag':     0.03,
-        'activity':0.03
-    }
-    try:
-        gnum = int(grade)
-    except:
-        gnum = None
-    if gnum and 9 <= gnum <= 12:
-        pct['ebook'] = 0.04
-        pct['kit']   = 0.00
+        # update or create invoice
+        inv = StudentInvoice.query.filter_by(student_id=student.id).first()
+        if inv:
+            inv.fees_paid += paid
+        else:
+            inv = StudentInvoice(
+                student_id=student.id,
+                sales_id=current_sales.id,
+                date=date.today(),
+                total_fees=total,
+                fees_paid=paid,
+                created_by=current_sales.name
+            )
+            util_db_add(inv)
 
-    breakdown = { k: round(total * v, 2) for k,v in pct.items() }
-    html = render_template('invoice.html', student=student, invoice=inv, breakdown=breakdown)
-    pdf = pdfkit.from_string(html, False, options=current_app.config.get('WKHTMLTOPDF_OPTIONS', {}))
+        # sync Student.fees_paid
+        student.fees_paid += paid
 
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'attachment; filename=invoice.pdf'
-    return response
+        result = util_db_update()
+        if not result.get('success'):
+            return jsonify({'success': False, 'error': 'Database update failed'}), 500
+
+        # percentage breakdown logic
+        pct = {
+            'tuition': 0.82,
+            'books':   0.04,
+            'ebook':   0.02,
+            'kit':     0.02,
+            'uniform': 0.04,
+            'bag':     0.03,
+            'activity':0.03
+        }
+        try:
+            gnum = int(grade)
+        except:
+            gnum = None
+        if gnum and 9 <= gnum <= 12:
+            pct['ebook'] = 0.04
+            pct['kit']   = 0.00
+
+        breakdown = { k: round(total * v, 2) for k,v in pct.items() }
+        html = render_template('invoice.html', student=student, invoice=inv, breakdown=breakdown)
+        pdf = pdfkit.from_string(html, False, options=current_app.config.get('WKHTMLTOPDF_OPTIONS', {}))
+
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=invoice.pdf'
+        return response
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @sales_bp.route('/generate-invoice', methods=['GET', 'POST'])
 @login_required

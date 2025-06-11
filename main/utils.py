@@ -10,7 +10,7 @@ from main.extensions import db, bcrypt
 from main.logger import event_logger, error_logger
 
 from flask import request, session, redirect, url_for, jsonify
-from .models import Admin
+from .models import Admin, Sales
 from functools import wraps
 # ── main/utils.py ────────────────────────────────────────────────────────────────
 
@@ -241,3 +241,23 @@ def is_admin(max_level=1):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+def is_sales(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = session.get('user')
+        if not user or user.get('role') != 'sales':
+            event_logger.warning(f"Unauthorized access attempt by user: {user.get('email', 'unknown') if user else 'unknown'}")
+            if request.method == "GET":
+                return redirect(url_for("index.login"))
+            return jsonify({"success": False, "error": "Access denied for non-sales access requests"}), 403
+            
+        sales = Sales.query.filter_by(email=user.get('email'), is_active=True).first()
+        if not sales:
+            event_logger.warning(f"Sales account not found for email {user.get('email')}")
+            if request.method == "GET":
+                return redirect(url_for("index.login"))
+            return jsonify({"success": False, "error": "Access denied for non-sales access requests"}), 403
+
+        return f(*args, **kwargs)
+    return decorated_function
