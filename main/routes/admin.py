@@ -11,7 +11,7 @@ def dashboard():
     user = session.get('user')
     if not user or user.get('role') != 'admin':
         return redirect(url_for('index.login'))
-    return render_template('admin_dashboard.html')
+    return redirect(url_for("admin.create_teacher"))
 
 @admin_bp.route('/create/sales', methods=['GET', 'POST'])
 @login_required
@@ -23,7 +23,7 @@ def create_sales():
     if request.method == "GET":
         # Get all sales accounts
         sales_accounts = Sales.query.filter_by(is_active=True).all()
-        return render_template('create_sales_admin.html', sales_accounts=sales_accounts)
+        return render_template('create_sales_admin.html', saless=sales_accounts)
 
     # Else post request to create sales 
     data = request.get_json()
@@ -36,14 +36,35 @@ def create_sales():
     mobile = data.get('mobile', '').strip()
     address = data.get('address', '').strip()
     pan_number = data.get('pan_number', '').strip()
-    bank_info = data.get('bank_info', {})
     commission_rate = data.get('commission_rate', 10.0)
+    bankInfo = data.get('paymentDetails',{})
 
     if not all([name, email, password, mobile, address, pan_number]):
         return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
     if Sales.query.filter_by(email=email).first():
         return jsonify({'success': False, 'error': 'Email already exists'}), 400
+
+    try:
+        int(mobile)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'error': 'Mobile must be a number'}), 400
+
+
+    if any(value for value in bankInfo.values()):
+        if bankInfo.get('ifscCode') is not None and len(bankInfo.get('ifscCode')) != 11:
+            return jsonify({'success': False, 'error': 'IFSC must be of 11 characters'}), 400
+        if bankInfo.get('AccountNumber') is not None and len(bankInfo.get('AccountNumber')) > 18:
+            return jsonify({'success': False, 'error': 'Invalid Account Number'}), 400
+        if bankInfo.get('AccountNumber') is not None:
+            try:
+                int(bankInfo.get('AccountNumber'))
+            except (TypeError, ValueError):
+                return jsonify({'success': False, 'error': 'Account Number must be a number'}), 400     
+
+    if len(pan_number) > 10:
+        return jsonify({'success': False, 'error': 'PAN Card Number Length Must be 10 Digits'}), 400
+
 
     hashed_password = generate_password_hash(password)
     new_sales = Sales(
@@ -53,7 +74,7 @@ def create_sales():
         mobile=mobile,
         address=address,
         pan_number=pan_number,
-        bank_info=bank_info,
+        bank_info=bankInfo,
         commission_rate=commission_rate
     )
     result = util_db_add(new_sales)
@@ -74,7 +95,7 @@ def modify_sales():
     DELETE → deactivate (or hard-delete) a admin
     """
     admin_id = request.json.get('id')
-    admin = Admin.query.get(admin_id)
+    admin = Sales.query.get(admin_id)
     if not admin:
         return jsonify({'success': False, 'error': 'Sales not found'}), 404
 
@@ -91,28 +112,65 @@ def modify_sales():
     email = data.get('email','').strip().lower()
     password = data.get('password')  # optional; only if they want to update password
     is_active = data.get('is_active',None)
+    mobile = data.get('mobile','').strip().lower()
+    pan_number = data.get('pan_number','').strip().upper()
+    bankInfo = data.get('paymentDetails',{})
+    commission_rate = data.get('commission_rate')
 
     if name:
         admin.name = name
     if email:
         # check duplicate:
-        existing = Admin.query.filter(Admin.email == email, Admin.id != admin_id).first()
+        existing = Sales.query.filter(Sales.email == email,  Sales.id != admin_id).first()
         if existing:
             return jsonify({'success': False, 'error': 'Email already in use'}), 400
         admin.email = email
     if is_active is not None:
         admin.is_active = is_active
 
+    if mobile:
+        try:
+            int(mobile)
+            admin.mobile = mobile
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'Mobile must be a number'}), 400
+    if pan_number:
+        if len(pan_number) != 10:
+            return jsonify({'success': False, 'error': 'PAN Card Number Length Must be 10 Digits'}), 400
+        admin.pan_number = pan_number
+
+    if bankInfo:
+        if any(value for value in bankInfo.values()):
+            if bankInfo.get('ifscCode') != '' and len(bankInfo.get('ifscCode')) != 11:
+                return jsonify({'success': False, 'error': 'IFSC must be of 11 characters'}), 400
+            if bankInfo.get('AccountNumber') != '' and len(bankInfo.get('AccountNumber')) > 18:
+                return jsonify({'success': False, 'error': 'Invalid Account Number'}), 400
+            if bankInfo.get('AccountNumber') != '':
+                try:
+                    int(bankInfo.get('AccountNumber'))
+                except (TypeError, ValueError):
+                    return jsonify({'success': False, 'error': 'Account Number must be a number'}), 400     
+            admin.bank_info = bankInfo        
+
+    if commission_rate is not None:
+        try:
+            commission_rate_v = float(commission_rate)
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'pay_per_lecture must be a number'}), 400
+        if commission_rate_v < 0:
+            return jsonify({'success': False, 'error': 'pay_per_lecture cannot be negative'}), 400
+        admin.commission_rate = commission_rate_v
+
     if password:
         admin.password = generate_password_hash(password)
 
     result = util_db_update()
     if not result.get("success"):
-        return jsonify({ 'success': False, 'error': 'Admin Updation Failed' }), 500
+        return jsonify({ 'success': False, 'error': 'Sales Account Updation Failed' }), 500
 
     data = admin.to_dict()
 
-    return jsonify({ 'success': True, 'message': 'Admin updated', 'admin': data}), 200
+    return jsonify({ 'success': True, 'message': 'Sales Account updated', 'sales': data}), 200
 
 @admin_bp.route('/create/teacher', methods=['GET','POST'])
 @login_required
@@ -501,7 +559,7 @@ def sales_analytics():
     from sqlalchemy import func, and_, or_
     
     # Get all active sales admins (level 2)
-    sales_admins = Admin.query.filter_by(is_active=True).all()
+    sales_admins = Sales.query.filter_by(is_active=True).all()
     analytics = []
     
     # Get selected month and year from query params

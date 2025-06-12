@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin Dashboard</title>
+    <title>Create sales Account</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet" />
@@ -20,7 +20,7 @@
     <!-- Mobile Navigation -->
     <nav class="navbar navbar-dark bg-dark d-md-none fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Admin Dashboard</a>
+            <a class="navbar-brand" href="{{ url_for('admin.create_sales' ) }}">Create sales Account</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -44,7 +44,7 @@
             <!-- Welcome Section -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3">Level-1 Admin Dashboard</h1>
+                    <h1 class="h3">Create sales Account</h1>
                     <p class="text-muted">Welcome, {{ session.user.name }}!</p>
                 </div>
                 <div class="d-none d-md-block">
@@ -52,115 +52,160 @@
                 </div>
             </div>
 
-            <!-- Create Admin Card -->
+            <!-- Create sales Card -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Create Sales Account</span>
+                    <span>Create sales Account</span>
                 </div>
                 <div class="card-body">
-                    <form id="createAdminForm">
+                    <form id="createsalesForm">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="nameInput" class="form-label">Full Name*</label>
-                                <input type="text" class="form-control" id="nameInput" placeholder="full name"
-                                    required />
+                                <label title="Compulsory Field" for="salesName" class="form-label">Name*</label>
+                                <input type="text" class="form-control" id="salesName" placeholder="sales full name" required />
                             </div>
                             <div class="col-md-6">
-                                <label for="emailInput" class="form-label">Email*</label>
-                                <input type="email" class="form-control" id="emailInput" placeholder="sales@example.com"
-                                    required />
+                                <label title="Compulsory Field" for="salesEmail" class="form-label">Email*</label>
+                                <input type="email" class="form-control" id="salesEmail" placeholder="sales@example.com" required />
                             </div>
                             <div class="col-md-6">
-                                <label for="passwordInp" class="form-label">Password*</label>
+                                <label title="Compulsory Field" for="salesPassword" class="form-label">Password*</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="passwordInp"
-                                        placeholder="Enter a password" required />
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePassword('passwordInp')">
+                                    <input type="password" class="form-control" id="salesPassword" placeholder="Enter a password" required />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('salesPassword')">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="mobileInput" class="form-label">Mobile Number*</label>
-                                <input type="text" class="form-control" id="mobileInput" placeholder="Mobile Number"
-                                    required maxlength="10" />
+                                <label title="Compulsory Field" for="commission_rate" class="form-label">Commission Rate (%)*</label>
+                                <input type="number" step="0.01" class="form-control" id="commission_rate" placeholder="e.g. 10" required />
                             </div>
-                            <div class="col-md-6">
-                                <label for="addressInput" class="form-label">Address*</label>
-                                <input type="text" class="form-control" id="addressInput" placeholder="Address"
-                                    required />
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Additional Details</span>
                             </div>
-                            <div class="col-md-6">
-                                <label for="panInput" class="form-label">PAN Number*</label>
-                                <input type="text" class="form-control" id="panInput" placeholder="PAN Number"
-                                    required maxlength="11" />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="bankNameInput" class="form-label">Bank Name</label>
-                                <input type="text" class="form-control" id="bankNameInput" placeholder="Bank Name" />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="bankAddressInput" class="form-label">Bank Address</label>
-                                <input type="text" class="form-control" id="bankAddressInput" placeholder="Bank Address" />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="accountNumberInput" class="form-label">Account Number</label>
-                                <input type="text" class="form-control" id="accountNumberInput" placeholder="Account Number" />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="ifscInput" class="form-label">IFSC Code</label>
-                                <input type="text" class="form-control" id="ifscInput" placeholder="IFSC Code" maxlength="11" />
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label title="Compulsory Field" for="mobileNumber" class="form-label">Mobile Number*</label>
+                                        <input type="number" class="form-control" id="mobileNumber" placeholder="Mobile Number" required/>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label title="Compulsory Field" for="address" class="form-label">Address*</label>
+                                        <input type="text" class="form-control" id="address" placeholder="Address" required/>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label title="Compulsory Field" for="panNumber" class="form-label">PAN Number*</label>
+                                        <input type="text" class="form-control" id="panNumber" placeholder="PAN Number" required/>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="bankName" class="form-label">Bank Name</label>
+                                        <input type="text" class="form-control" id="bankName" placeholder="Name of the Bank" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="bankAddress" class="form-label">Bank Address</label>
+                                        <input type="text" class="form-control" id="bankAddress" placeholder="Bank Address" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="accountNumber" class="form-label">Account Number</label>
+                                        <input type="number" class="form-control" id="accountNumber" placeholder="eg. 6980000XXXX" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="accountType" class="form-label">Account Type</label>
+                                        <select name="accountType" id="accountType" class="form-control">
+                                            <option value="" selected>---Not Selected---</option>
+                                            <option value="saving">Savings</option>
+                                            <option value="current">Current</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="ifscCode" class="form-label">IFSC Code</label>
+                                        <input type="text" class="form-control" id="ifscCode" placeholder="IFSCS" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="mt-3">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-person-plus-fill me-2"></i>Create Sales Account
+                            <button type="submit" class="btn btn-success" id="createsalesBtn">
+                                <i class="bi bi-person-plus-fill me-2"></i>Create sales
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Admins List -->
+            <!-- saless List -->
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Existing Sales Accounts</span>
+                    <span>Existing saless</span>
                     <div class="d-flex gap-2">
-                        <input type="text" class="form-control form-control-sm" id="adminSearch"
-                            placeholder="Search Sales...">
-                        <select class="form-select form-select-sm" id="adminSort">
+                        <input type="text" class="form-control form-control-sm" id="salesSearch"
+                            placeholder="Search saless...">
+                        <select class="form-select form-select-sm" id="salesSort">
                             <option value="name">Sort by Name</option>
                             <option value="email">Sort by Email</option>
+                            <option value="commission">Sort by Commission Rate</option>
                         </select>
                     </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Mobile</th>
-                                    <th>Status</th>
+                                    <th>Communication</th>
+                                    <th>Commission Rate</th>
+                                    <th>Payment Details</th>
+                                    <th>Is Active</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminsTableBody">
-                                {% for sales in sales_accounts %}
-                                <tr data-admin-id="{{ sales.id }}" data-admin-name="{{ sales.name }}" data-admin-email="{{ sales.email }}" data-is-active="{{ sales.is_active }}">
+                            <tbody id="salessTableBody">
+                                {% for sales in saless %}
+                                <tr data-sales-id="{{ sales.id }}" data-sales-name="{{ sales.name }}"
+                                    data-sales-email="{{ sales.email }}"
+                                    data-sales-commission_rate="{{ sales.commission_rate }}"
+                                    data-sales-address="{{sales.address }}"
+                                    data-mobile-number="{{sales.mobile }}"
+                                    data-pan-number="{{sales.pan_number }}"
+                                    data-is-active="{{sales.is_active|lower }}"
+                                    data-bank-name="{{sales.bank_info.bankName }}"
+                                    data-bank-address="{{sales.bank_info.bankAddress }}"
+                                    data-account-number="{{sales.bank_info.AccountNumber }}"
+                                    data-account-type="{{sales.bank_info.AccountType }}"
+                                    data-ifsc-code="{{sales.bank_info.ifscCode }}">
                                     <td>{{ sales.id }}</td>
-                                    <td class="admin-name">{{ sales.name }}</td>
-                                    <td class="admin-email">{{ sales.email }}</td>
-                                    <td>{{ sales.mobile }}</td>
-                                    <td class="admin-is-active">{{ "Active" if sales.is_active else "Inactive" }}</td>
+                                    <td class="sales-name">{{ sales.name }}</td>
+                                    <td class="communication">
+                                        <span class="sales-email">Email: {{ sales.email }}</span><br>
+                                        <span class="sales-mobile">Mobile: {{ sales.mobile }}</span><br>
+                                        <span class="sales-address">Address: {{ sales.address }}</span>
+                                    </td>
+                                    <td class="sales-commission_rate">%{{ sales.commission_rate|int }}</td>
+                                    <td class="sales-payment-details">
+                                        <span class="bank-name">Bank Name: {{ sales.bank_info.bankName }}</span><br>
+                                        <span class="bankAddress">Bank Address: {{ sales.bank_info.bankAddress }}</span><br>
+                                        <span class="account-number">Account Number: {{ sales.bank_info.AccountNumber }}</span><br>
+                                        <span class="account-type">Account Type: {{ sales.bank_info.AccountType }}</span><br>
+                                        <span class="ifsc-code">IFSC: {{ sales.bank_info.ifscCode }}</span><br>
+                                        <span class="pan-number">PAN Number: {{ sales.pan_number }}</span>
+                                    </td>
+                                    <td class="sales-isActive">
+                                        {% if sales.is_active %}
+                                        Active
+                                        {% else %}
+                                        Inactive
+                                        {% endif %}
+                                    </td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-primary edit-admin-btn">
+                                        <button class="btn btn-sm btn-primary edit-sales-btn">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-danger delete-admin-btn">
+                                        <button class="btn btn-sm btn-danger delete-sales-btn">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
@@ -175,42 +220,89 @@
     </div>
 
     <!-- Edit Modal -->
-    <div class="modal fade" id="editAdminModal" tabindex="-1">
+    <div class="modal fade" id="editsalesModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <form id="editAdminForm">
+                <form id="editsalesForm">
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Sales</h5>
+                        <h5 class="modal-title">Edit sales</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div id="editFeedback" class="mb-2"></div>
-                        <input type="hidden" id="editAdminId" />
+                        <input type="hidden" id="editsalesId" />
                         <div class="mb-3">
-                            <label for="editAdminName" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="editAdminName" required />
+                            <label for="editsalesName" class="form-label">Name*</label>
+                            <input type="text" class="form-control" id="editsalesName" required />
                         </div>
                         <div class="mb-3">
-                            <label for="editAdminEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="editAdminEmail" required />
+                            <label for="editsalesEmail" class="form-label">Email*</label>
+                            <input type="email" class="form-control" id="editsalesEmail" required />
                         </div>
                         <div class="mb-3">
-                            <label for="editAdminPassword" class="form-label">New Password</label>
+                            <label for="editcommission_rate" class="form-label">Commission (%)*</label>
+                            <input type="number" step="0.01" class="form-control" id="editcommission_rate" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="editMobileNumber" class="form-label">Mobile Number*</label>
+                            <input type="text" class="form-control" id="editMobileNumber" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAddress" class="form-label">Address*</label>
+                            <input type="text" class="form-control" id="editAddress" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPanNumber" class="form-label">PAN Number*</label>
+                            <input type="text" class="form-control" id="editPanNumber" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="editsalesPassword" class="form-label">New Password</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="editAdminPassword"
+                                <input type="password" class="form-control" id="editsalesPassword"
                                     placeholder="Leave blank to keep current" />
                                 <button class="btn btn-outline-secondary" type="button"
-                                    onclick="togglePassword('editAdminPassword')">
+                                    onclick="togglePassword('editsalesPassword')">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="editAdminStatus" class="form-label">Account Status</label>
-                            <select class="form-select" id="editAdminStatus" required>
+                            <label for="editsalesStatus" class="form-label">Account Status</label>
+                            <select class="form-select" id="editsalesStatus" required>
                                 <option value="true">Active</option>
                                 <option value="false">Inactive</option>
                             </select>
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <span>Bank Details</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="editBankName" class="form-label">Bank Name</label>
+                                    <input type="text" class="form-control" id="editBankName" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editBankAddress" class="form-label">Bank Address</label>
+                                    <input type="text" class="form-control" id="editBankAddress" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editAccountNumber" class="form-label">Account Number</label>
+                                    <input type="number" class="form-control" id="editAccountNumber" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editAccountType" class="form-label">Account Type</label>
+                                    <select id="editAccountType" class="form-control">
+                                        <option value="">---Not Selected---</option>
+                                        <option value="saving">Savings</option>
+                                        <option value="current">Current</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editIfscCode" class="form-label">IFSC Code</label>
+                                    <input type="text" class="form-control" id="editIfscCode" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -223,7 +315,7 @@
     </div>
 
     <!-- Delete Modal -->
-    <div class="modal fade" id="deleteAdminModal" tabindex="-1">
+    <div class="modal fade" id="deletesalesModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -234,7 +326,7 @@
                     <div class="text-center mb-3">
                         <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
                     </div>
-                    <p class="text-center" id="deleteModalBodyText">Are you sure you want to delete this admin?</p>
+                    <p class="text-center" id="deleteModalBodyText">Are you sure you want to delete this sales?</p>
                     <div id="deleteFeedback" class="mt-2"></div>
                 </div>
                 <div class="modal-footer">
@@ -262,108 +354,150 @@
         }
 
         // Search functionality
-        document.getElementById('adminSearch').addEventListener('input', function (e) {
+        document.getElementById('salesSearch').addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#adminsTableBody tr');
+            const rows = document.querySelectorAll('#salessTableBody tr');
 
             rows.forEach(row => {
-                const name = row.querySelector('.admin-name').textContent.toLowerCase();
-                const email = row.querySelector('.admin-email').textContent.toLowerCase();
+                const name = row.querySelector('.sales-name').textContent.toLowerCase();
+                const email = row.querySelector('.sales-email').textContent.toLowerCase();
                 const shouldShow = name.includes(searchTerm) || email.includes(searchTerm);
                 row.style.display = shouldShow ? '' : 'none';
             });
         });
 
         // Sort functionality
-        document.getElementById('adminSort').addEventListener('change', function (e) {
+        document.getElementById('salesSort').addEventListener('change', function (e) {
             const sortBy = e.target.value;
-            const tbody = document.getElementById('adminsTableBody');
+            const tbody = document.getElementById('salessTableBody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
 
             rows.sort((a, b) => {
-                let aVal = a.querySelector(`.admin-${sortBy}`).textContent;
-                let bVal = b.querySelector(`.admin-${sortBy}`).textContent;
+                let aVal = a.querySelector(`.sales-${sortBy}`).textContent;
+                let bVal = b.querySelector(`.sales-${sortBy}`).textContent;
+
+                if (sortBy === 'commission') {
+                    aVal = parseFloat(aVal.replace('%', ''));
+                    bVal = parseFloat(bVal.replace('%', ''));
+                    return bVal - aVal;
+                }
+
                 return aVal.localeCompare(bVal);
             });
 
             rows.forEach(row => tbody.appendChild(row));
         });
-    </script>
 
-    <!-- Keep existing JavaScript for CRUD operations -->
-    <script>
-        // ── CREATE admin (unchanged) ───────────────────────────────────────────────
-        document
-            .getElementById("createAdminForm").addEventListener("submit", function (e) {
-                e.preventDefault();
+        // Create sales Form
+        document.getElementById('createsalesForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const createsalesBtn = document.getElementById("createsalesBtn")
+            const name = document.getElementById('salesName').value.trim();
+            const email = document.getElementById('salesEmail').value.trim().toLowerCase();
+            const password = document.getElementById('salesPassword').value;
+            const mobile = document.getElementById('mobileNumber').value;
+            const address = document.getElementById('address').value;
+            const pan_number = document.getElementById('panNumber').value;
+            const payRaw = document.getElementById('commission_rate').value;
+            const paymentDetails = {
+                bankName: document.getElementById('bankName').value,
+                AccountNumber: document.getElementById('accountNumber').value,
+                AccountType: document.getElementById('accountType').value,
+                ifscCode: document.getElementById('ifscCode').value,
+                bankAddress: document.getElementById('bankAddress').value
+            };
 
-                const name = document.getElementById("nameInput").value.trim();
-                const email = document.getElementById("emailInput").value.trim().toLowerCase();
-                const password = document.getElementById("passwordInp").value;
-                const mobile = document.getElementById("mobileInput").value.trim();
-                const address = document.getElementById("addressInput").value.trim();
-                const panNumber = document.getElementById("panInput").value.trim();
+            if (!name || !email || !password || !payRaw || !mobile || !address ||  !pan_number) {
+                return showCreateFeedback(
+                    "All fields (Name, Email, Mobile, Password, address, panNumber, Commission) are required.",
+                    false
+                );
+            }
+            if (mobile.length != 10){
+                document.getElementById('mobileNumber').focus();
+                return showCreateFeedback(
+                    "Mobile Length Must Be 10 Digits",
+                    false
+                );
+            }
+            if (paymentDetails.accountNumber != "" && paymentDetails.AccountNumber.length > 18  ){
+                document.getElementById('accountNumber').focus();
+                return showCreateFeedback(
+                    "Account Number Exceeding 18 Digits",
+                    false
+                );
+            }
+            if (paymentDetails.ifscCode != "" && paymentDetails.ifscCode.length != 11  ){
+                document.getElementById('ifscCode').focus();
+                return showCreateFeedback(
+                    "IFSC Code Length Must Be 11 Characters",
+                    false
+                );
+            }
+            if (pan_number.length != 10){
+                document.getElementById('panNumber').focus();
+                return showCreateFeedback(
+                    "PAN Card Number Must Be 10  Characters",
+                    false
+                );
+            }
 
-                if (!name || !email || !password || !mobile || !address || !panNumber) {
-                    showCreateFeedback(
-                        "All required fields (Name, Email, Password, Mobile, Address, PAN Number) must be filled.",
-                        false
-                    );
-                    return;
+            const commission_rate = parseFloat(payRaw);
+            if (isNaN(commission_rate) || commission_rate < 0) {
+                document.getElementById('commission_rate').focus();
+                showCreateFeedback(
+                    "Please enter a valid, non-negative number for Pay per Lecture.",
+                    false
+                );
+                return;
+            }
+
+            createsalesBtn.setAttribute('disabled','')
+            createsalesBtn.innerText = "Please Wait"
+            
+            fetch("{{ url_for('admin.create_sales') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    mobile,
+                    address,
+                    pan_number,
+                    password,
+                    commission_rate,
+                    paymentDetails
+                }),
+            })
+            .then((res) => res.json().then((data) => ({
+                status: res.status,
+                body: data,
+            })))
+            .then(({ status, body }) => {
+                if (status === 200 && body.success) {
+                    showCreateFeedback(body.message, true);
+                    prependsalesRow(body.sales);
+                    document.getElementById('createsalesForm').reset();
+                } else {
+                    showCreateFeedback(body.error || "Failed to create sales.", false);
                 }
-
-                const bankInfo = {
-                    bankName: document.getElementById("bankNameInput").value.trim(),
-                    bankAddress: document.getElementById("bankAddressInput").value.trim(),
-                    AccountNumber: document.getElementById("accountNumberInput").value.trim(),
-                    ifscCode: document.getElementById("ifscInput").value.trim()
-                };
-
-                const payload = {
-                    name: name,
-                    email: email,
-                    password: password,
-                    role: 'sales',
-                    mobile: mobile,
-                    address: address,
-                    pan_number: panNumber,
-                    commission_rate: 10.0,  // Fixed 10% commission
-                    bank_info: bankInfo
-                };
-
-                fetch('{{ url_for("admin.create_sales") }}', {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-
-                }).then((res) =>
-                    res.json().then((data) => ({
-                        status: res.status,
-                        body: data,
-                    }))
-
-                ).then(({ status, body }) => {
-                    if (status === 200 && body.success) {
-                        showCreateFeedback(body.message, true);
-                        console.log(body)
-                        prependAdminRow(body.data);
-                    } else {
-                        showCreateFeedback(body.error || "Failed to create admin.", false);
-                    }
-                }).catch((err) => {
-                    console.error(err);
-                    showCreateFeedback("An unexpected error occurred.", false);
-                });
+                createsalesBtn.removeAttribute('disabled');
+                createsalesBtn.innerText = "Create sales"
+            })
+            .catch((err) => {
+                showCreateFeedback("An unexpected error occurred.", false);
+                createsalesBtn.removeAttribute('disabled');
+                createsalesBtn.innerText = "Create sales"
             });
+        });
 
         function showCreateFeedback(msg, isSuccess) {
             let alertClass = isSuccess ? "alert-success" : "alert-danger";
             let feedbackDiv = document.getElementById("createFeedback");
             if (!feedbackDiv) {
-                // first time – insert a feedback <div> right above the form
                 feedbackDiv = document.createElement("div");
                 feedbackDiv.id = "createFeedback";
-                const form = document.getElementById("createAdminForm");
+                const form = document.getElementById("createsalesForm");
                 form.parentNode.insertBefore(feedbackDiv, form);
             }
             feedbackDiv.className = `alert ${alertClass} mt-2`;
@@ -373,78 +507,155 @@
                     feedbackDiv.remove();
                 }, 200);
             }
+            feedbackDiv.scrollIntoView()
         }
 
-        function prependAdminRow(admin) {
-            console.log(admin)
-            const tbody = document.getElementById("adminsTableBody");
+        function prependsalesRow(sales) {
+            const tbody = document.getElementById("salessTableBody");
             const tr = document.createElement("tr");
-            tr.setAttribute("data-admin-id", admin.id);
-            tr.setAttribute("data-admin-name", admin.name);
-            tr.setAttribute("data-admin-email", admin.email);
-            tr.setAttribute("data-is-active", admin.is_active);
+            tr.setAttribute("data-sales-id", sales.id);
+            tr.setAttribute("data-sales-name", sales.name);
+            tr.setAttribute("data-sales-email", sales.email);
+            tr.setAttribute("data-sales-pay", sales.commission_rate);
+            tr.setAttribute("data-sales-address", sales.address);
+            tr.setAttribute("data-mobile-number", sales.mobile);
+            tr.setAttribute("data-pan-number", sales.pan_number);
+            tr.setAttribute("data-is-active", sales.is_active);
+            tr.setAttribute("data-bank-name", sales.bank_info.bankName);
+            tr.setAttribute("data-bank-address", sales.bank_info.bankAddress);
+            tr.setAttribute("data-account-number", sales.bank_info.AccountNumber);
+            tr.setAttribute("data-account-type", sales.bank_info.AccountType);
+            tr.setAttribute("data-ifsc-code", sales.bank_info.ifscCode);
+
             tr.innerHTML = `
-        <td>${admin.id}</td>
-        <td class="admin-name">${admin.name}</td>
-        <td class="admin-email">${admin.email}</td>
-        <td class="admin-is-active">${admin.is_active ? "Active" : "Inactive"}</td>
-        <td class="text-end">
-          <button class="btn btn-sm btn-primary edit-admin-btn"><i class="bi bi-pencil-square"></i></button>
-          <button class="btn btn-sm btn-danger delete-admin-btn"><i class="bi bi-trash"></i></button>
-        </td>`;
+                <td>${sales.id}</td>
+                <td class="sales-name">${sales.name}</td>
+                <td class="communication">
+                    <span class="sales-email">Email: ${sales.email}</span><br>
+                    <span class="sales-mobile">Mobile: ${sales.mobile}</span><br>
+                    <span class="sales-address">Address: ${sales.address}</span>
+                </td>
+                <td class="sales-pay">%${sales.commission_rate}</td>
+                <td class="sales-payment-details">
+                    <span class="bank-name">Bank Name: ${sales.bank_info.bankName}</span><br>
+                    <span class="bankAddress">Bank Address: ${sales.bank_info.bankAddress}</span><br>
+                    <span class="account-number">Account Number: ${sales.bank_info.AccountNumber}</span><br>
+                    <span class="account-type">Account Type: ${sales.bank_info.AccountType}</span><br>
+                    <span class="ifsc-code">IFSC: ${sales.bank_info.ifscCode}</span><br>
+                    <span class="pan-number">PAN Number: ${sales.pan_number}</span><br>
+                </td>
+                <td class="sales-isActive">${sales.is_active ? "Active" : "Inactive"}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-primary edit-sales-btn">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger delete-sales-btn">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>`;
             tbody.prepend(tr);
         }
 
-        // ── EDIT / DELETE event delegation ───────────────────────────────────────────
-        const adminsTbody = document.getElementById("adminsTableBody");
-        adminsTbody.addEventListener("click", function (e) {
+        // Edit/Delete event delegation
+        const salessTbody = document.getElementById("salessTableBody");
+        let editModal = new bootstrap.Modal(document.getElementById("editsalesModal"));
+        salessTbody.addEventListener("click", function (e) {
             const row = e.target.closest("tr");
-            const adminId = row?.getAttribute("data-admin-id");
-            if (!adminId) return;
+            const salesId = row?.getAttribute("data-sales-id");
+            if (!salesId) return;
 
-            // ── DELETE button clicked → show Delete Modal ───────────────────────────
-            if (e.target.classList.contains("delete-admin-btn")) {
-                const adminName = row.getAttribute("data-admin-name") || "";
-                openDeleteModal(adminId, adminName);
+            if (e.target.classList.contains("delete-sales-btn")) {
+                const salesName = row.getAttribute("data-sales-name") || "";
+                openDeleteModal(salesId, salesName);
             }
 
-            // ── EDIT button clicked → show Edit Modal ───────────────────────────────
-            if (e.target.classList.contains("edit-admin-btn")) {
-                const tName = row.getAttribute("data-admin-name");
-                const tEmail = row.getAttribute("data-admin-email");
+            if (e.target.classList.contains("edit-sales-btn") || e.target.classList.contains("bi-pencil-square")) {
+                const tName = row.getAttribute("data-sales-name");
+                const tEmail = row.getAttribute("data-sales-email");
+                const tPay = row.getAttribute("data-sales-commission_rate");
+                const address = row.getAttribute("data-sales-address");
+                const mobileNumber = row.getAttribute("data-mobile-number");
+                const panNumber = row.getAttribute("data-pan-number");
                 const isActive = row.getAttribute("data-is-active");
+                const bankName = row.getAttribute("data-bank-name");
+                const bankAddress = row.getAttribute("data-bank-address");
+                const accountNumber = row.getAttribute("data-account-number");
+                const accountType = row.getAttribute("data-account-type");
+                const ifscCode = row.getAttribute("data-ifsc-code");
 
-                openEditModal(adminId, tName, tEmail, isActive);
+                // openEditModal(salesId, tName, tEmail, role, mobileNumber, address, panNumber, tPay, bankName, accountNumber, accountType, ifscCode, bankAddress, isActive);
+                document.getElementById("editsalesId").value = salesId;
+                document.getElementById("editsalesName").value = tName;
+                document.getElementById("editsalesEmail").value = tEmail;
+                document.getElementById("editcommission_rate").value = tPay;
+                document.getElementById("editMobileNumber").value = mobileNumber;
+                document.getElementById("editAddress").value = address;
+                document.getElementById("editPanNumber").value = panNumber;
+                document.getElementById("editsalesStatus").value = isActive === "true" ? "true" : "false";
+                document.getElementById("editBankName").value = bankName;
+                document.getElementById("editBankAddress").value = bankAddress;
+                document.getElementById("editAccountNumber").value = accountNumber;
+                document.getElementById("editAccountType").value = accountType;
+                document.getElementById("editIfscCode").value = ifscCode;
+                document.getElementById("editsalesPassword").value = "";
+                document.getElementById("editFeedback").innerHTML = "";
+                editModal.show();
             }
         });
 
-        // ── EDIT MODAL logic ───────────────────────────────────────────────────────
-        let editModal = new bootstrap.Modal(document.getElementById("editAdminModal"));
-        function openEditModal(id, name, email, isActive) {
-            document.getElementById("editAdminId").value = id;
-            document.getElementById("editAdminName").value = name;
-            document.getElementById("editAdminEmail").value = email;
-            document.getElementById("editAdminStatus").value = isActive === "true" ? "true" : "false";
-            document.getElementById("editAdminPassword").value = "";
-            document.getElementById("editFeedback").innerHTML = ""; // clear previous feedback
-            editModal.show();
+        // // Edit Modal logic
+        // function openEditModal(id, name, email, role, mobileNumber, address, panNumber, pay, bankName, accountNumber, accountType, ifscCode, bankAddress, isActive) {
 
-        }
+        // }
 
-        document.getElementById("editAdminForm").addEventListener("submit", function (e) {
+        document.getElementById("editsalesForm").addEventListener("submit", function (e) {
             e.preventDefault();
-            const id = document.getElementById("editAdminId").value;
-            const newName = document.getElementById("editAdminName").value.trim();
-            const newEmail = document.getElementById("editAdminEmail").value.trim().toLowerCase();
-            const newPwd = document.getElementById("editAdminPassword").value
-            const isActive = document.getElementById("editAdminStatus").value==="true"?true:false;
+            const id = document.getElementById("editsalesId").value;
+            const newName = document.getElementById("editsalesName").value.trim();
+            const newEmail = document.getElementById("editsalesEmail").value.trim().toLowerCase();
+            const newPayRaw = document.getElementById("editcommission_rate").value;
+            const newPwd = document.getElementById("editsalesPassword").value;
+            const newMobileNumber = document.getElementById("editMobileNumber").value.trim();
+            const newAddress = document.getElementById("editAddress").value.trim();
+            const newPanNumber = document.getElementById("editPanNumber").value.trim();
+            const isActive = document.getElementById("editsalesStatus").value === "true";
+            const newBankName = document.getElementById("editBankName").value.trim();
+            const newBankAddress = document.getElementById("editBankAddress").value.trim();
+            const newAccountNumber = document.getElementById("editAccountNumber").value.trim();
+            const newAccountType = document.getElementById("editAccountType").value;
+            const newIfscCode = document.getElementById("editIfscCode").value.trim();
 
-            if (!newName || !newEmail) {
-                showEditFeedback("Name, Email, and Pay per Lecture are required.", false);
+            const paymentDetails = {
+                bankName: newBankName,
+                AccountNumber: newAccountNumber,
+                AccountType: newAccountType,
+                ifscCode: newIfscCode,
+                bankAddress: newBankAddress
+            };
+
+            if (!newName || !newEmail || !newPayRaw || !newMobileNumber || !newAddress || !newPanNumber) {
+                showEditFeedback("All required fields must be filled.", false);
                 return;
             }
 
-            let payload = { name: newName, email: newEmail, id: id, is_active:isActive };
+            const newPay = parseFloat(newPayRaw);
+            if (isNaN(newPay) || newPay < 0) {
+                showEditFeedback("Please enter a valid, non-negative number for Pay per Lecture.", false);
+                return;
+            }
+
+            let payload = {
+                name: newName,
+                email: newEmail,
+                mobile: newMobileNumber,
+                address: newAddress,
+                pan_number: newPanNumber,
+                commission_rate: newPay,
+                id: id,
+                paymentDetails: paymentDetails,
+                is_active: isActive
+            };
+
             if (newPwd.trim()) {
                 payload.password = newPwd;
             }
@@ -454,36 +665,50 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             })
-                .then((res) =>
-                    res.json().then((data) => ({
-                        status: res.status,
-                        body: data,
-                    }))
-                )
-                .then(({ status, body }) => {
-                    if (status === 200 && body.success) {
-                        showEditFeedback(body.message, true);
-                        // Update the table row values & data-attributes
-                        const row = document.querySelector(`tr[data-admin-id="${id}"]`);
-                        row.setAttribute("data-admin-name", body.admin.name);
-                        row.setAttribute("data-admin-email", body.admin.email);
-                        row.setAttribute("data-is-active", body.admin.is_active);
-                        
-                        row.querySelector(".admin-isActive").textContent = body.admin.is_active ? "Active" : "Inactive";
-                        row.querySelector(".admin-name").textContent = body.admin.name;
-                        row.querySelector(".admin-email").textContent = body.admin.email;
-                        // NOT GETTING FLOAT VALUE AFTER UPDATE
-                        setTimeout(() => {
-                            editModal.hide();
-                        }, 500);
-                    } else {
-                        showEditFeedback(body.error || "Failed to update.", false);
-                    }
-                })
-                .catch((err) => {
-                    console.error(err);
-                    showEditFeedback("An unexpected error occurred.", false);
-                });
+            .then((res) => res.json().then((data) => ({
+                status: res.status,
+                body: data,
+            })))
+            .then(({ status, body }) => {
+                if (status === 200 && body.success) {
+                    showEditFeedback(body.message, true);
+                    const row = document.querySelector(`tr[data-sales-id="${id}"]`);
+                    row.setAttribute("data-sales-name", body.sales.name);
+                    row.setAttribute("data-sales-email", body.sales.email);
+                    row.setAttribute("data-sales-commission_rate", body.sales.commission_rate);
+                    row.setAttribute("data-sales-address", body.sales.address);
+                    row.setAttribute("data-mobile-number", body.sales.mobile);
+                    row.setAttribute("data-pan-number", body.sales.pan_number);
+                    row.setAttribute("data-is-active", body.sales.is_active);
+                    row.setAttribute("data-bank-name", body.sales.bank_info.bankName);
+                    row.setAttribute("data-bank-address", body.sales.bank_info.bankAddress);
+                    row.setAttribute("data-account-number", body.sales.bank_info.AccountNumber);
+                    row.setAttribute("data-account-type", body.sales.bank_info.AccountType);
+                    row.setAttribute("data-ifsc-code", body.sales.bank_info.ifscCode);
+
+                    row.querySelector(".sales-name").textContent = body.sales.name;
+                    row.querySelector(".sales-email").textContent = `Email: ${body.sales.email}`;
+                    row.querySelector(".sales-mobile").textContent = `Mobile: ${body.sales.mobile}`;
+                    row.querySelector(".sales-address").textContent = `Address: ${body.sales.address}`;
+                    row.querySelector(".sales-commission_rate").textContent = `%${body.sales.commission_rate}`;
+                    row.querySelector(".bank-name").textContent = `Bank Name: ${body.sales.bank_info.bankName}`;
+                    row.querySelector(".bankAddress").textContent = `Bank Address: ${body.sales.bank_info.bankAddress}`;
+                    row.querySelector(".account-number").textContent = `Account Number: ${body.sales.bank_info.AccountNumber}`;
+                    row.querySelector(".account-type").textContent = `Account Type: ${body.sales.bank_info.AccountType}`;
+                    row.querySelector(".ifsc-code").textContent = `IFSC: ${body.sales.bank_info.ifscCode}`;
+                    row.querySelector(".pan-number").textContent = `PAN Number: ${body.sales.pan_number}`;
+                    row.querySelector(".sales-isActive").textContent = body.sales.is_active ? "Active" : "Inactive";
+
+                    setTimeout(() => {
+                        editModal.hide();
+                    }, 500);
+                } else {
+                    showEditFeedback(body.error || "Failed to update.", false);
+                }
+            })
+            .catch((err) => {
+                showEditFeedback("An unexpected error occurred.", false);
+            });
         });
 
         function showEditFeedback(msg, isSuccess) {
@@ -491,6 +716,7 @@
             fb.innerHTML = `<div class="alert ${isSuccess ? "alert-success" : "alert-danger"}">
                         ${msg}
                       </div>`;
+            fb.scrollIntoView();
             if (isSuccess) {
                 setTimeout(() => {
                     fb.innerHTML = "";
@@ -498,12 +724,12 @@
             }
         }
 
-        // ── DELETE MODAL logic ─────────────────────────────────────────────────────
-        let deleteModal = new bootstrap.Modal(document.getElementById("deleteAdminModal"));
-        let deletingAdminId = null;
+        // Delete Modal logic
+        let deleteModal = new bootstrap.Modal(document.getElementById("deletesalesModal"));
+        let deletingsalesId = null;
 
         function openDeleteModal(id, name) {
-            deletingAdminId = id;
+            deletingsalesId = id;
             document.getElementById("deleteFeedback").innerHTML = "";
             document.getElementById("deleteModalBodyText").textContent =
                 `Are you sure you want to delete "${name}" (ID #${id})?`;
@@ -511,35 +737,31 @@
         }
 
         document.getElementById("confirmDeleteBtn").addEventListener("click", function () {
-            if (!deletingAdminId) return;
+            if (!deletingsalesId) return;
 
             fetch("{{url_for('admin.modify_sales')}}", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "id": deletingAdminId })
+                body: JSON.stringify({ "id": deletingsalesId })
             })
-                .then((res) =>
-                    res.json().then((data) => ({
-                        status: res.status,
-                        body: data,
-                    }))
-                )
-                .then(({ status, body }) => {
-                    if (status === 200 && body.success) {
-                        window.location.reload()
-                        document.querySelector(`tr[data-admin-id="${deletingAdminId}"]`).remove();
-                        showDeleteFeedback(body.message, true);
-                        setTimeout(() => {
-                            deleteModal.hide();
-                        }, 200);
-                    } else {
-                        showDeleteFeedback(body.error || "Failed to delete.", false);
-                    }
-                })
-                .catch((err) => {
-                    console.error(err);
-                    showDeleteFeedback("An unexpected error occurred.", false);
-                });
+            .then((res) => res.json().then((data) => ({
+                status: res.status,
+                body: data,
+            })))
+            .then(({ status, body }) => {
+                if (status === 200 && body.success) {
+                    document.querySelector(`tr[data-sales-id="${deletingsalesId}"]`).remove();
+                    showDeleteFeedback(body.message, true);
+                    setTimeout(() => {
+                        deleteModal.hide();
+                    }, 200);
+                } else {
+                    showDeleteFeedback(body.error || "Failed to delete.", false);
+                }
+            })
+            .catch((err) => {
+                showDeleteFeedback("An unexpected error occurred.", false);
+            });
         });
 
         function showDeleteFeedback(msg, isSuccess) {
@@ -556,4 +778,4 @@
     </script>
 </body>
 
-</html>
+</html> 

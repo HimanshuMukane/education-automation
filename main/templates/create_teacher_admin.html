@@ -20,7 +20,7 @@
     <!-- Mobile Navigation -->
     <nav class="navbar navbar-dark bg-dark d-md-none fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Create Teacher Account</a>
+            <a class="navbar-brand" href="{{ url_for('admin.create_teacher' ) }}">Create Teacher Account</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -90,19 +90,19 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label title="Compulsory Field" for="mobileNumber" class="form-label">Mobile Number*</label>
-                                        <input type="number" class="form-control" id="mobileNumber" placeholder="Mobile Number" />
+                                        <input type="number" class="form-control" id="mobileNumber" placeholder="Mobile Number" required/>
                                     </div>
                                     <div class="col-md-6">
                                         <label title="Compulsory Field" for="address" class="form-label">Address*</label>
-                                        <input type="text" class="form-control" id="address" placeholder="Address" />
+                                        <input type="text" class="form-control" id="address" placeholder="Address" required/>
                                     </div>
                                     <div class="col-md-6">
                                         <label title="Compulsory Field" for="role" class="form-label">Role*</label>
-                                        <input type="text" class="form-control" id="role" placeholder="Role" />
+                                        <input type="text" class="form-control" id="role" placeholder="Role" required/>
                                     </div>
                                     <div class="col-md-6">
                                         <label title="Compulsory Field" for="panNumber" class="form-label">PAN Number*</label>
-                                        <input type="text" class="form-control" id="panNumber" placeholder="PAN Number" />
+                                        <input type="text" class="form-control" id="panNumber" placeholder="PAN Number" required/>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="bankName" class="form-label">Bank Name</label>
@@ -112,11 +112,19 @@
                                         <label for="bankAddress" class="form-label">Bank Address</label>
                                         <input type="text" class="form-control" id="bankAddress" placeholder="Bank Address" />
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label for="accountNumber" class="form-label">Account Number</label>
                                         <input type="number" class="form-control" id="accountNumber" placeholder="eg. 6980000XXXX" />
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
+                                        <label for="accountType" class="form-label">Account Type</label>
+                                        <select name="accountType" id="accountType" class="form-control">
+                                            <option value="" selected>---Not Selected---</option>
+                                            <option value="saving">Savings</option>
+                                            <option value="current">Current</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
                                         <label for="ifscCode" class="form-label">IFSC Code</label>
                                         <input type="text" class="form-control" id="ifscCode" placeholder="IFSCS" />
                                     </div>
@@ -124,7 +132,7 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-success" id="createTeacherBtn">
                                 <i class="bi bi-person-plus-fill me-2"></i>Create Teacher
                             </button>
                         </div>
@@ -174,6 +182,7 @@
                                     data-bank-name="{{teacher.bank_info.bankName }}"
                                     data-bank-address="{{teacher.bank_info.bankAddress }}"
                                     data-account-number="{{teacher.bank_info.AccountNumber }}"
+                                    data-account-type="{{teacher.bank_info.AccountType }}"
                                     data-ifsc-code="{{teacher.bank_info.ifscCode }}">
                                     <td>{{ teacher.id }}</td>
                                     <td class="teacher-name">{{ teacher.name }}</td>
@@ -188,8 +197,9 @@
                                         <span class="bank-name">Bank Name: {{ teacher.bank_info.bankName }}</span><br>
                                         <span class="bankAddress">Bank Address: {{ teacher.bank_info.bankAddress }}</span><br>
                                         <span class="account-number">Account Number: {{ teacher.bank_info.AccountNumber }}</span><br>
-                                        <span class="pan-number">PAN Number: {{ teacher.pan_number }}</span><br>
-                                        <span class="ifsc-code">IFSC: {{ teacher.bank_info.ifscCode }}</span>
+                                        <span class="account-type">Account Type: {{ teacher.bank_info.AccountType }}</span><br>
+                                        <span class="ifsc-code">IFSC: {{ teacher.bank_info.ifscCode }}</span><br>
+                                        <span class="pan-number">PAN Number: {{ teacher.pan_number }}</span>
                                     </td>
                                     <td class="teacher-isActive">
                                         {% if teacher.is_active %}
@@ -292,6 +302,14 @@
                                     <input type="number" class="form-control" id="editAccountNumber" />
                                 </div>
                                 <div class="mb-3">
+                                    <label for="editAccountType" class="form-label">Account Type</label>
+                                    <select id="editAccountType" class="form-control">
+                                        <option value="">---Not Selected---</option>
+                                        <option value="saving">Savings</option>
+                                        <option value="current">Current</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="editIfscCode" class="form-label">IFSC Code</label>
                                     <input type="text" class="form-control" id="editIfscCode" />
                                 </div>
@@ -384,7 +402,7 @@
         // Create Teacher Form
         document.getElementById('createTeacherForm').addEventListener('submit', function (e) {
             e.preventDefault();
-
+            const createTeacherBtn = document.getElementById("createTeacherBtn")
             const name = document.getElementById('teacherName').value.trim();
             const email = document.getElementById('teacherEmail').value.trim().toLowerCase();
             const password = document.getElementById('teacherPassword').value;
@@ -396,20 +414,49 @@
             const paymentDetails = {
                 bankName: document.getElementById('bankName').value,
                 AccountNumber: document.getElementById('accountNumber').value,
+                AccountType: document.getElementById('accountType').value,
                 ifscCode: document.getElementById('ifscCode').value,
                 bankAddress: document.getElementById('bankAddress').value
             };
 
             if (!name || !email || !password || !payRaw || !mobile || !address || !role || !pan_number) {
-                showCreateFeedback(
+                return showCreateFeedback(
                     "All fields (Name, Email, Mobile, Password, address, role, panNumber, Pay per Lecture) are required.",
                     false
                 );
-                return;
+            }
+            if (mobile.length != 10){
+                document.getElementById('mobileNumber').focus();
+                return showCreateFeedback(
+                    "Mobile Length Must Be 10 Digits",
+                    false
+                );
+            }
+            if (paymentDetails.accountNumber != "" && paymentDetails.AccountNumber.length > 18  ){
+                document.getElementById('accountNumber').focus();
+                return showCreateFeedback(
+                    "Account Number Exceeding 18 Digits",
+                    false
+                );
+            }
+            if (paymentDetails.ifscCode != "" && paymentDetails.ifscCode.length != 11  ){
+                document.getElementById('ifscCode').focus();
+                return showCreateFeedback(
+                    "IFSC Code Length Must Be 11 Characters",
+                    false
+                );
+            }
+            if (pan_number.length != 10){
+                document.getElementById('panNumber').focus();
+                return showCreateFeedback(
+                    "PAN Card Number Must Be 10  Characters",
+                    false
+                );
             }
 
             const pay_per_lecture = parseFloat(payRaw);
             if (isNaN(pay_per_lecture) || pay_per_lecture < 0) {
+                document.getElementById('teacherPay').focus();
                 showCreateFeedback(
                     "Please enter a valid, non-negative number for Pay per Lecture.",
                     false
@@ -417,6 +464,9 @@
                 return;
             }
 
+            createTeacherBtn.setAttribute('disabled','')
+            createTeacherBtn.innerText = "Please Wait"
+            
             fetch("{{ url_for('admin.create_teacher') }}", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -444,10 +494,13 @@
                 } else {
                     showCreateFeedback(body.error || "Failed to create teacher.", false);
                 }
+                createTeacherBtn.removeAttribute('disabled');
+                createTeacherBtn.innerText = "Create Teacher"
             })
             .catch((err) => {
-                console.error(err);
                 showCreateFeedback("An unexpected error occurred.", false);
+                createTeacherBtn.removeAttribute('disabled');
+                createTeacherBtn.innerText = "Create Teacher"
             });
         });
 
@@ -467,6 +520,7 @@
                     feedbackDiv.remove();
                 }, 200);
             }
+            feedbackDiv.scrollIntoView()
         }
 
         function prependTeacherRow(teacher) {
@@ -484,6 +538,7 @@
             tr.setAttribute("data-bank-name", teacher.bank_info.bankName);
             tr.setAttribute("data-bank-address", teacher.bank_info.bankAddress);
             tr.setAttribute("data-account-number", teacher.bank_info.AccountNumber);
+            tr.setAttribute("data-account-type", teacher.bank_info.AccountType);
             tr.setAttribute("data-ifsc-code", teacher.bank_info.ifscCode);
 
             tr.innerHTML = `
@@ -500,8 +555,9 @@
                     <span class="bank-name">Bank Name: ${teacher.bank_info.bankName}</span><br>
                     <span class="bankAddress">Bank Address: ${teacher.bank_info.bankAddress}</span><br>
                     <span class="account-number">Account Number: ${teacher.bank_info.AccountNumber}</span><br>
+                    <span class="account-type">Account Type: ${teacher.bank_info.AccountType}</span><br>
+                    <span class="ifsc-code">IFSC: ${teacher.bank_info.ifscCode}</span><br>
                     <span class="pan-number">PAN Number: ${teacher.pan_number}</span><br>
-                    <span class="ifsc-code">IFSC: ${teacher.bank_info.ifscCode}</span>
                 </td>
                 <td class="teacher-isActive">${teacher.is_active ? "Active" : "Inactive"}</td>
                 <td class="text-end">
@@ -517,6 +573,7 @@
 
         // Edit/Delete event delegation
         const teachersTbody = document.getElementById("teachersTableBody");
+        let editModal = new bootstrap.Modal(document.getElementById("editTeacherModal"));
         teachersTbody.addEventListener("click", function (e) {
             const row = e.target.closest("tr");
             const teacherId = row?.getAttribute("data-teacher-id");
@@ -527,7 +584,7 @@
                 openDeleteModal(teacherId, teacherName);
             }
 
-            if (e.target.classList.contains("edit-teacher-btn")) {
+            if (e.target.classList.contains("edit-teacher-btn") || e.target.classList.contains("bi-pencil-square")) {
                 const tName = row.getAttribute("data-teacher-name");
                 const tEmail = row.getAttribute("data-teacher-email");
                 const tPay = row.getAttribute("data-teacher-pay");
@@ -539,32 +596,34 @@
                 const bankName = row.getAttribute("data-bank-name");
                 const bankAddress = row.getAttribute("data-bank-address");
                 const accountNumber = row.getAttribute("data-account-number");
+                const accountType = row.getAttribute("data-account-type");
                 const ifscCode = row.getAttribute("data-ifsc-code");
 
-                openEditModal(teacherId, tName, tEmail, role, mobileNumber, address, panNumber, tPay, bankName, accountNumber, ifscCode, bankAddress, isActive);
+                // openEditModal(teacherId, tName, tEmail, role, mobileNumber, address, panNumber, tPay, bankName, accountNumber, accountType, ifscCode, bankAddress, isActive);
+                document.getElementById("editTeacherId").value = teacherId;
+                document.getElementById("editTeacherName").value = tName;
+                document.getElementById("editTeacherEmail").value = tEmail;
+                document.getElementById("editTeacherPay").value = tPay;
+                document.getElementById("editMobileNumber").value = mobileNumber;
+                document.getElementById("editAddress").value = address;
+                document.getElementById("editRole").value = role;
+                document.getElementById("editPanNumber").value = panNumber;
+                document.getElementById("editTeacherStatus").value = isActive === "true" ? "true" : "false";
+                document.getElementById("editBankName").value = bankName;
+                document.getElementById("editBankAddress").value = bankAddress;
+                document.getElementById("editAccountNumber").value = accountNumber;
+                document.getElementById("editAccountType").value = accountType;
+                document.getElementById("editIfscCode").value = ifscCode;
+                document.getElementById("editTeacherPassword").value = "";
+                document.getElementById("editFeedback").innerHTML = "";
+                editModal.show();
             }
         });
 
-        // Edit Modal logic
-        let editModal = new bootstrap.Modal(document.getElementById("editTeacherModal"));
-        function openEditModal(id, name, email, role, mobileNumber, address, panNumber, pay, bankName, accountNumber, ifscCode, bankAddress, isActive) {
-            document.getElementById("editTeacherId").value = id;
-            document.getElementById("editTeacherName").value = name;
-            document.getElementById("editTeacherEmail").value = email;
-            document.getElementById("editTeacherPay").value = pay;
-            document.getElementById("editMobileNumber").value = mobileNumber;
-            document.getElementById("editAddress").value = address;
-            document.getElementById("editRole").value = role;
-            document.getElementById("editPanNumber").value = panNumber;
-            document.getElementById("editTeacherStatus").value = isActive === "true" ? "true" : "false";
-            document.getElementById("editBankName").value = bankName;
-            document.getElementById("editBankAddress").value = bankAddress;
-            document.getElementById("editAccountNumber").value = accountNumber;
-            document.getElementById("editIfscCode").value = ifscCode;
-            document.getElementById("editTeacherPassword").value = "";
-            document.getElementById("editFeedback").innerHTML = "";
-            editModal.show();
-        }
+        // // Edit Modal logic
+        // function openEditModal(id, name, email, role, mobileNumber, address, panNumber, pay, bankName, accountNumber, accountType, ifscCode, bankAddress, isActive) {
+
+        // }
 
         document.getElementById("editTeacherForm").addEventListener("submit", function (e) {
             e.preventDefault();
@@ -581,11 +640,13 @@
             const newBankName = document.getElementById("editBankName").value.trim();
             const newBankAddress = document.getElementById("editBankAddress").value.trim();
             const newAccountNumber = document.getElementById("editAccountNumber").value.trim();
+            const newAccountType = document.getElementById("editAccountType").value;
             const newIfscCode = document.getElementById("editIfscCode").value.trim();
 
             const paymentDetails = {
                 bankName: newBankName,
                 AccountNumber: newAccountNumber,
+                AccountType: newAccountType,
                 ifscCode: newIfscCode,
                 bankAddress: newBankAddress
             };
@@ -642,6 +703,7 @@
                     row.setAttribute("data-bank-name", body.teacher.bank_info.bankName);
                     row.setAttribute("data-bank-address", body.teacher.bank_info.bankAddress);
                     row.setAttribute("data-account-number", body.teacher.bank_info.AccountNumber);
+                    row.setAttribute("data-account-type", body.teacher.bank_info.AccountType);
                     row.setAttribute("data-ifsc-code", body.teacher.bank_info.ifscCode);
 
                     row.querySelector(".teacher-name").textContent = body.teacher.name;
@@ -653,8 +715,9 @@
                     row.querySelector(".bank-name").textContent = `Bank Name: ${body.teacher.bank_info.bankName}`;
                     row.querySelector(".bankAddress").textContent = `Bank Address: ${body.teacher.bank_info.bankAddress}`;
                     row.querySelector(".account-number").textContent = `Account Number: ${body.teacher.bank_info.AccountNumber}`;
-                    row.querySelector(".pan-number").textContent = `PAN Number: ${body.teacher.pan_number}`;
+                    row.querySelector(".account-type").textContent = `Account Type: ${body.teacher.bank_info.AccountType}`;
                     row.querySelector(".ifsc-code").textContent = `IFSC: ${body.teacher.bank_info.ifscCode}`;
+                    row.querySelector(".pan-number").textContent = `PAN Number: ${body.teacher.pan_number}`;
                     row.querySelector(".teacher-isActive").textContent = body.teacher.is_active ? "Active" : "Inactive";
 
                     setTimeout(() => {
@@ -665,7 +728,6 @@
                 }
             })
             .catch((err) => {
-                console.error(err);
                 showEditFeedback("An unexpected error occurred.", false);
             });
         });
@@ -675,6 +737,7 @@
             fb.innerHTML = `<div class="alert ${isSuccess ? "alert-success" : "alert-danger"}">
                         ${msg}
                       </div>`;
+            fb.scrollIntoView();
             if (isSuccess) {
                 setTimeout(() => {
                     fb.innerHTML = "";
@@ -718,7 +781,6 @@
                 }
             })
             .catch((err) => {
-                console.error(err);
                 showDeleteFeedback("An unexpected error occurred.", false);
             });
         });

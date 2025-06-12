@@ -14,15 +14,15 @@ def index():
             # For admin users, check their level
             level = user.get('level')
             if level == 1:
-                return redirect(url_for('admin.dashboard'))
+                return redirect(url_for('admin.create_sales'))
             elif level == 2:
                 return redirect(url_for('sales.dashboard'))
             else:
                 # Fallback to general admin dashboard
-                return redirect(url_for('admin.dashboard'))
+                return redirect(url_for('admin.create_sales'))
         
         elif role == 'teacher':
-            return redirect(url_for('teacher.dashboard'))
+            return redirect(url_for('teacher.mark_attendance'))
     
     # If no valid session or role found, redirect to login
     return redirect(url_for('index.login'))

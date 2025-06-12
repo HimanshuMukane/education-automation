@@ -21,11 +21,10 @@ body {
   background-color: var(--primary-color);
   min-height: 100vh;
   padding: 1.5rem;
-  color: var(--light-text);
 }
 
 .sidebar .nav-link {
-  color: var(--light-text);
+  color: var(--dark-text);
   opacity: 0.8;
   transition: opacity 0.2s ease;
 }

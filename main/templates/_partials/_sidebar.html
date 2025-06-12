@@ -13,11 +13,6 @@
         <ul class="nav flex-column">
             {% if session.user.role == 'admin' %}
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('admin.create_teacher') }}">
                     <i class="bi bi-person-plus me-2"></i>Create Teacher
                 </a>
@@ -54,11 +49,6 @@
                 </a>
             </li>
             {% elif session.user.role == 'teacher' %}
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('teacher.dashboard') }}">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                </a>
-            </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('teacher.mark_attendance') }}">
                     <i class="bi bi-check-circle me-2"></i>Mark Attendance
