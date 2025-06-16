@@ -1,8 +1,8 @@
-"""db created
+"""empty message
 
-Revision ID: 4c5add81eb40
+Revision ID: 8cf819ded73d
 Revises: 
-Create Date: 2025-06-06 00:51:22.056168
+Create Date: 2025-06-16 13:17:00.918359
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '4c5add81eb40'
+revision = '8cf819ded73d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,7 +23,6 @@ def upgrade():
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
-    sa.Column('level', sa.Integer(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -34,6 +33,27 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_admins_email'), ['email'], unique=True)
         batch_op.create_index(batch_op.f('ix_admins_is_active'), ['is_active'], unique=False)
         batch_op.create_index(batch_op.f('ix_admins_updated_at'), ['updated_at'], unique=False)
+
+    op.create_table('sales',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('email', sa.String(length=120), nullable=False),
+    sa.Column('password', sa.String(length=255), nullable=False),
+    sa.Column('address', sa.String(length=100), nullable=False),
+    sa.Column('mobile', sa.String(length=10), nullable=False),
+    sa.Column('pan_number', sa.String(length=11), nullable=False),
+    sa.Column('commission_rate', sa.Float(), nullable=False),
+    sa.Column('bank_info', sa.JSON(), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('sales', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_sales_created_at'), ['created_at'], unique=False)
+        batch_op.create_index(batch_op.f('ix_sales_email'), ['email'], unique=True)
+        batch_op.create_index(batch_op.f('ix_sales_is_active'), ['is_active'], unique=False)
+        batch_op.create_index(batch_op.f('ix_sales_updated_at'), ['updated_at'], unique=False)
 
     op.create_table('students',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -56,8 +76,12 @@ def upgrade():
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
-    sa.Column('bank_info', sa.JSON(), nullable=True),
+    sa.Column('role', sa.String(length=20), nullable=False),
+    sa.Column('address', sa.String(length=100), nullable=False),
+    sa.Column('mobile', sa.String(length=10), nullable=False),
+    sa.Column('pan_number', sa.String(length=11), nullable=False),
     sa.Column('pay_per_lecture', sa.Float(), nullable=False),
+    sa.Column('bank_info', sa.JSON(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -72,17 +96,21 @@ def upgrade():
     op.create_table('student_invoices',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('student_id', sa.Integer(), nullable=False),
+    sa.Column('sales_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.Date(), nullable=False),
     sa.Column('fees_paid', sa.Float(), nullable=False),
     sa.Column('total_fees', sa.Float(), nullable=False),
+    sa.Column('created_by', sa.String(length=100), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['sales_id'], ['sales.id'], ),
     sa.ForeignKeyConstraint(['student_id'], ['students.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('student_invoices', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_student_invoices_created_at'), ['created_at'], unique=False)
         batch_op.create_index(batch_op.f('ix_student_invoices_date'), ['date'], unique=False)
+        batch_op.create_index(batch_op.f('ix_student_invoices_sales_id'), ['sales_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_student_invoices_student_id'), ['student_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_student_invoices_updated_at'), ['updated_at'], unique=False)
 
@@ -103,46 +131,68 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_teacher_invoices_teacher_id'), ['teacher_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_teacher_invoices_updated_at'), ['updated_at'], unique=False)
 
-    op.create_table('timetable',
+    op.create_table('timetable_templates',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date', sa.Date(), nullable=False),
-    sa.Column('grade', sa.String(length=20), nullable=False),
     sa.Column('subject', sa.String(length=100), nullable=False),
-    sa.Column('start_time', sa.Time(), nullable=False),
-    sa.Column('end_time', sa.Time(), nullable=False),
     sa.Column('teacher_id', sa.Integer(), nullable=False),
+    sa.Column('day_of_week', sa.Integer(), nullable=False),
+    sa.Column('start_time', sa.Time(), nullable=False),
+    sa.Column('grade', sa.String(length=20), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['teacher_id'], ['teachers.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('timetable_templates', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_timetable_templates_created_at'), ['created_at'], unique=False)
+        batch_op.create_index(batch_op.f('ix_timetable_templates_day_of_week'), ['day_of_week'], unique=False)
+        batch_op.create_index(batch_op.f('ix_timetable_templates_grade'), ['grade'], unique=False)
+        batch_op.create_index(batch_op.f('ix_timetable_templates_subject'), ['subject'], unique=False)
+        batch_op.create_index(batch_op.f('ix_timetable_templates_teacher_id'), ['teacher_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_timetable_templates_updated_at'), ['updated_at'], unique=False)
+
+    op.create_table('attendance',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('timetable_id', sa.Integer(), nullable=False),
+    sa.Column('date', sa.Date(), nullable=False),
+    sa.Column('is_present', sa.Boolean(), nullable=True),
     sa.Column('is_proxy', sa.Boolean(), nullable=True),
     sa.Column('proxy_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['proxy_id'], ['teachers.id'], ),
-    sa.ForeignKeyConstraint(['teacher_id'], ['teachers.id'], ),
+    sa.ForeignKeyConstraint(['timetable_id'], ['timetable_templates.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    with op.batch_alter_table('timetable', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_timetable_created_at'), ['created_at'], unique=False)
-        batch_op.create_index(batch_op.f('ix_timetable_date'), ['date'], unique=False)
-        batch_op.create_index(batch_op.f('ix_timetable_grade'), ['grade'], unique=False)
-        batch_op.create_index(batch_op.f('ix_timetable_proxy_id'), ['proxy_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_timetable_subject'), ['subject'], unique=False)
-        batch_op.create_index(batch_op.f('ix_timetable_teacher_id'), ['teacher_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_timetable_updated_at'), ['updated_at'], unique=False)
+    with op.batch_alter_table('attendance', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_attendance_created_at'), ['created_at'], unique=False)
+        batch_op.create_index(batch_op.f('ix_attendance_date'), ['date'], unique=False)
+        batch_op.create_index(batch_op.f('ix_attendance_proxy_id'), ['proxy_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_attendance_timetable_id'), ['timetable_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_attendance_updated_at'), ['updated_at'], unique=False)
 
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    with op.batch_alter_table('timetable', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_timetable_updated_at'))
-        batch_op.drop_index(batch_op.f('ix_timetable_teacher_id'))
-        batch_op.drop_index(batch_op.f('ix_timetable_subject'))
-        batch_op.drop_index(batch_op.f('ix_timetable_proxy_id'))
-        batch_op.drop_index(batch_op.f('ix_timetable_grade'))
-        batch_op.drop_index(batch_op.f('ix_timetable_date'))
-        batch_op.drop_index(batch_op.f('ix_timetable_created_at'))
+    with op.batch_alter_table('attendance', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_attendance_updated_at'))
+        batch_op.drop_index(batch_op.f('ix_attendance_timetable_id'))
+        batch_op.drop_index(batch_op.f('ix_attendance_proxy_id'))
+        batch_op.drop_index(batch_op.f('ix_attendance_date'))
+        batch_op.drop_index(batch_op.f('ix_attendance_created_at'))
 
-    op.drop_table('timetable')
+    op.drop_table('attendance')
+    with op.batch_alter_table('timetable_templates', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_timetable_templates_updated_at'))
+        batch_op.drop_index(batch_op.f('ix_timetable_templates_teacher_id'))
+        batch_op.drop_index(batch_op.f('ix_timetable_templates_subject'))
+        batch_op.drop_index(batch_op.f('ix_timetable_templates_grade'))
+        batch_op.drop_index(batch_op.f('ix_timetable_templates_day_of_week'))
+        batch_op.drop_index(batch_op.f('ix_timetable_templates_created_at'))
+
+    op.drop_table('timetable_templates')
     with op.batch_alter_table('teacher_invoices', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_teacher_invoices_updated_at'))
         batch_op.drop_index(batch_op.f('ix_teacher_invoices_teacher_id'))
@@ -153,6 +203,7 @@ def downgrade():
     with op.batch_alter_table('student_invoices', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_student_invoices_updated_at'))
         batch_op.drop_index(batch_op.f('ix_student_invoices_student_id'))
+        batch_op.drop_index(batch_op.f('ix_student_invoices_sales_id'))
         batch_op.drop_index(batch_op.f('ix_student_invoices_date'))
         batch_op.drop_index(batch_op.f('ix_student_invoices_created_at'))
 
@@ -170,6 +221,13 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_students_created_at'))
 
     op.drop_table('students')
+    with op.batch_alter_table('sales', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_sales_updated_at'))
+        batch_op.drop_index(batch_op.f('ix_sales_is_active'))
+        batch_op.drop_index(batch_op.f('ix_sales_email'))
+        batch_op.drop_index(batch_op.f('ix_sales_created_at'))
+
+    op.drop_table('sales')
     with op.batch_alter_table('admins', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_admins_updated_at'))
         batch_op.drop_index(batch_op.f('ix_admins_is_active'))
